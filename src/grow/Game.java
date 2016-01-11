@@ -23,7 +23,7 @@ import exceptions.SyntaxError;
 public class Game {
 
 	/**
-	 * The line that seperates scenes
+	 * The line that separates scenes
 	 */
 	private static final String SCENE_SEPARATOR = "```";
 
@@ -59,7 +59,6 @@ public class Game {
 	 *            the starting scene. Added to the world.
 	 * @param adventureName
 	 *            the name of the adventure
-	 * @throws SceneExists
 	 */
 	public Game(Scene start, String adventureName) {
 		world = new HashMap<>();
@@ -123,6 +122,15 @@ public class Game {
 		return adventureName;
 	}
 
+	/**
+	 * Effect: adds the specified scene to the game, and throws a
+	 * {@link SceneExists} exception if the scene already exists.
+	 *
+	 * @param s
+	 *            the scene to add
+	 * @throws SceneExists
+	 *             if a scene with the same name already exists
+	 */
 	public void addScene(Scene s) throws SceneExists {
 		if (world.containsKey(s.name())) {
 			throw new SceneExists(s.name());
@@ -211,6 +219,10 @@ public class Game {
 	 *
 	 * @param in
 	 *            the input file
+	 * @throws NoSuchScene
+	 *             if the current scene does not exist in this game
+	 * @throws SyntaxError
+	 *             if there is a syntax error in the file
 	 */
 	public void loadState(Scanner in) throws NoSuchScene, SyntaxError {
 		int line = 1;
@@ -372,13 +384,27 @@ public class Game {
 		}
 	}
 
-	public static String extract(String start, String line, int lineNumber) throws SyntaxError {
-		if (!line.startsWith(start)) {
-			throw new SyntaxError(lineNumber, "Line does not start with: " + start);
+	/**
+	 * Extracts the suffix from a string that must start with the specified
+	 * prefix. Throws a syntax error if there is a problem.
+	 *
+	 * @param prefix
+	 *            the prefix that {@code line} must start with.
+	 * @param line
+	 *            the line to extract the suffix from
+	 * @param lineNumber
+	 *            the line number to use when throwing a {@link SyntaxError}.
+	 * @return the suffix
+	 * @throws SyntaxError
+	 *             if there is a problem with the format of {@code line}.
+	 */
+	public static String extract(String prefix, String line, int lineNumber) throws SyntaxError {
+		if (!line.startsWith(prefix)) {
+			throw new SyntaxError(lineNumber, "Line does not start with: " + prefix);
 		}
-		String startName = line.substring(start.length());
+		String startName = line.substring(prefix.length());
 		if (startName.length() == 0) {
-			throw new SyntaxError(lineNumber, "No data after: " + start);
+			throw new SyntaxError(lineNumber, "No data after: " + prefix);
 		}
 		return startName;
 	}

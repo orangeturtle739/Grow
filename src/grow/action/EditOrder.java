@@ -9,6 +9,13 @@ import grow.Game;
 import grow.Rule;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to edit the order of rules from a
+ * single scene.
+ * 
+ * @author Jacob Glueck
+ *
+ */
 public class EditOrder extends Action {
 
 	@Override

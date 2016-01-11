@@ -52,6 +52,13 @@ public abstract class Action {
 		return commandString();
 	}
 
+	/**
+	 * Parses an action from an action string
+	 * 
+	 * @param action
+	 *            the action string to parse
+	 * @return the action, or null if unable to parse
+	 */
 	public static Action parseAction(String action) {
 		if (action.length() == 0) {
 			return null;

@@ -32,6 +32,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+/**
+ * The main GUI application
+ *
+ * @author Jacob Glueck
+ *
+ */
 public class Grow extends Application {
 	@Override
 	public void start(Stage primaryStage) {
@@ -123,11 +129,27 @@ public class Grow extends Application {
 		primaryStage.setTitle("Grow");
 	}
 
+	/**
+	 * Effect: sets the background image of a region to be white with a
+	 * specified image on top of it.
+	 *
+	 * @param n
+	 *            the node
+	 * @param i
+	 *            the image
+	 */
 	private void setBackground(Region n, Image i) {
 		BackgroundImage back = new BackgroundImage(i, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, new BackgroundSize(100, 100, true, true, true, false));
 		n.setBackground(new Background(new BackgroundFill[] { new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY) }, new BackgroundImage[] { back }));
 	}
 
+	/**
+	 * With no arguments, launches a GUI Grow game. With the single flag
+	 * {@code -t}, launches a text only version.
+	 *
+	 * @param args
+	 *            the arguments.
+	 */
 	public static void main(String[] args) {
 		if (Arrays.equals(args, new String[] { "-t" })) {
 			new GrowGame(new Scanner(System.in), System.out).play();

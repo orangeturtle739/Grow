@@ -8,6 +8,13 @@ import java.util.Scanner;
 import grow.Game;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to edit the order of the actions
+ * from a single rule of a single scene.
+ * 
+ * @author Jacob Glueck
+ *
+ */
 public class EditActionOrder extends Action {
 
 	@Override

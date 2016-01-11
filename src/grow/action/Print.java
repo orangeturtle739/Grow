@@ -3,8 +3,8 @@ package grow.action;
 import java.io.PrintStream;
 import java.util.Scanner;
 
-import grow.Scene;
 import grow.Game;
+import grow.Scene;
 
 /**
  * Represents: a print action, which prints text.
@@ -13,6 +13,9 @@ import grow.Game;
  */
 public class Print extends Action {
 
+	/**
+	 * The prefix
+	 */
 	public static final char PREFIX = 'p';
 
 	/**

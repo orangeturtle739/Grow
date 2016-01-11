@@ -19,6 +19,9 @@ import grow.action.Action;
  */
 public class Rule {
 
+	/**
+	 * The delimeter used when saving lists
+	 */
 	public static final String SAVE_DELIMETER = "`";
 
 	/**

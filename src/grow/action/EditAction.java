@@ -7,6 +7,13 @@ import java.util.Scanner;
 import grow.Game;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to edit the actions of a single
+ * rule from a single scene.
+ * 
+ * @author Jacob Glueck
+ *
+ */
 public class EditAction extends Action {
 
 	@Override

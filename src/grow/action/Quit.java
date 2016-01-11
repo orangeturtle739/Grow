@@ -3,8 +3,8 @@ package grow.action;
 import java.io.PrintStream;
 import java.util.Scanner;
 
-import grow.Scene;
 import grow.Game;
+import grow.Scene;
 
 /**
  * Represents: a quit action
@@ -13,6 +13,9 @@ import grow.Game;
  */
 public class Quit extends Action {
 
+	/**
+	 * The prefix
+	 */
 	public static final char PREFIX = 'q';
 
 	@Override

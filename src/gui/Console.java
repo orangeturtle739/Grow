@@ -90,6 +90,10 @@ public class Console extends VBox {
 	 */
 	private final TextField inputField;
 
+	/**
+	 * An object used to ensure that only one thread writes to the view at the
+	 * same time.
+	 */
 	private final Object viewLock;
 
 	/**
@@ -240,13 +244,15 @@ public class Console extends VBox {
 	}
 
 	/**
-	 * Converts a color to a hex code
+	 * Converts a color to a hex code. From:
 	 *
 	 * @param color
 	 *            the color
 	 * @return the hex code
-	 * @see http://stackoverflow.com/questions/17925318/how-to-get-hex-web-
-	 *      string-from-javafx-colorpicker-color
+	 * @see <a href=
+	 *      "http://stackoverflow.com/questions/17925318/how-to-get-hex-web-string-from-javafx-colorpicker-color">
+	 *      http://stackoverflow.com/questions/17925318/how-to-get-hex-web-
+	 *      string-from-javafx-colorpicker-color</a>
 	 */
 	private static String toRGBCode(Color color) {
 		return String.format("#%02X%02X%02X", (int) (color.getRed() * 255), (int) (color.getGreen() * 255), (int) (color.getBlue() * 255));

@@ -11,8 +11,17 @@ import grow.Game;
 import grow.Rule;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to add a rule to a scene.
+ *
+ * @author Jacob Glueck
+ *
+ */
 public class Extend extends Action {
 
+	/**
+	 * The action prefix
+	 */
 	public static final char PREFIX = 'x';
 
 	@Override
@@ -30,6 +39,17 @@ public class Extend extends Action {
 		return new Go(current.name()).act(current, world, input, output);
 	}
 
+	/**
+	 * Prompts the user for a list of actions and reads them using the specified
+	 * streams. Stops when the user enters a blank line. If the user enters a
+	 * malformed actions, it ignores it.
+	 *
+	 * @param input
+	 *            the input stream
+	 * @param output
+	 *            the output stream
+	 * @return a list of actions
+	 */
 	private static List<Action> getAction(Scanner input, PrintStream output) {
 		output.println("Actions:");
 		List<Action> result = new LinkedList<>();

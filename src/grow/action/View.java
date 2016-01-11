@@ -7,9 +7,19 @@ import grow.Game;
 import grow.Rule;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to look at all the rules defined
+ * for the current scene.
+ *
+ * @author Jacob Glueck
+ *
+ */
 public class View extends Action {
 
-	public static final char PREFIX = 'L';
+	/**
+	 * The prefix
+	 */
+	public static final char PREFIX = 'l';
 
 	@Override
 	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {

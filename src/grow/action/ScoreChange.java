@@ -14,7 +14,13 @@ import grow.Scene;
  */
 public class ScoreChange extends Action {
 
+	/**
+	 * The positive sign used to prefix a positive score change.
+	 */
 	public static final char POSITIVE = '+';
+	/**
+	 * The negative sign used to prefix a negative score change.
+	 */
 	public static final char NEGATIVE = '-';
 
 	/**
@@ -25,9 +31,7 @@ public class ScoreChange extends Action {
 	/**
 	 * Creates: a new score change action which changes the score by the
 	 * specified amount
-	 *
-	 * @param score
-	 *            the score to change
+	 * 
 	 * @param change
 	 *            the amount to change the score by
 	 */

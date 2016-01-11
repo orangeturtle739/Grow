@@ -16,7 +16,10 @@ import grow.Scene;
  */
 public class Save extends Action {
 
-	public static final char PREFIX = 'S';
+	/**
+	 * The prefix
+	 */
+	public static final char PREFIX = 's';
 
 	/**
 	 * The save file for the adventure

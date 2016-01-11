@@ -7,6 +7,13 @@ import java.util.Scanner;
 import grow.Game;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to edit the patterns in a single
+ * rule of single scene.
+ * 
+ * @author Jacob Glueck
+ *
+ */
 public class EditPattern extends Action {
 
 	@Override

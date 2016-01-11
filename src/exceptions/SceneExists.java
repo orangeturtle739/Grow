@@ -1,5 +1,11 @@
 package exceptions;
 
+/**
+ * Thrown when a scene already exists.
+ * 
+ * @author Jacob Glueck
+ *
+ */
 public class SceneExists extends GrowException {
 
 	/**

@@ -18,6 +18,9 @@ import grow.Scene;
  */
 public class Read extends Action {
 
+	/**
+	 * The prefix
+	 */
 	public static final char PREFIX = 'R';
 
 	/**

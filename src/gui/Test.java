@@ -6,6 +6,12 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+/**
+ * A testing class.
+ *
+ * @author Jacob Glueck
+ *
+ */
 public class Test extends Application {
 
 	@Override
@@ -19,7 +25,6 @@ public class Test extends Application {
 				try {
 					Thread.sleep(1000);
 				} catch (Exception e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
@@ -30,6 +35,12 @@ public class Test extends Application {
 		primaryStage.setOnCloseRequest(e -> Platform.exit());
 	}
 
+	/**
+	 * Runs the test
+	 *
+	 * @param args
+	 *            super cool
+	 */
 	public static void main(String[] args) {
 		launch(args);
 	}

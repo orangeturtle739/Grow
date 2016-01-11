@@ -62,9 +62,6 @@ public class Scene {
 	 *            the name of this scene.
 	 * @param description
 	 *            the text to be displayed when the user first enters the room
-	 * @param imageFile
-	 *            the file with an image for this scene. If null, there is no
-	 *            image for this scene.
 	 */
 	public Scene(String name, String description) {
 		this(name, description, null);
@@ -138,7 +135,7 @@ public class Scene {
 	/**
 	 * Effect: saves this to the specified output stream.
 	 *
-	 * @param out
+	 * @param ps
 	 *            the output stream.
 	 */
 	public void save(PrintStream ps) {

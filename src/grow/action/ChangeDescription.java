@@ -6,7 +6,13 @@ import java.util.Scanner;
 import grow.Game;
 import grow.Scene;
 
-public class Description extends Action {
+/**
+ * Represents: an action that changes the description of a scene
+ * 
+ * @author Jacob Glueck
+ *
+ */
+public class ChangeDescription extends Action {
 
 	@Override
 	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {

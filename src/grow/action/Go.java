@@ -14,6 +14,9 @@ import grow.Scene;
  */
 public class Go extends Action {
 
+	/**
+	 * The prefix
+	 */
 	public static final char PREFIX = 'g';
 
 	/**

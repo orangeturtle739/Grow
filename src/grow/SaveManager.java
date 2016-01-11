@@ -22,8 +22,17 @@ import grow.action.Save;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
+/**
+ * Represents: a way to save Grow data.
+ *
+ * @author Jacob Glueck
+ *
+ */
 public class SaveManager {
 
+	/**
+	 * The name of the file in which the last adventure playing is stored.
+	 */
 	private static final String CURRENT_FILE = "current_adventure.txt";
 
 	/**
@@ -37,6 +46,7 @@ public class SaveManager {
 	 * needed.
 	 *
 	 * @param growDir
+	 *            the directory in which to store all the grow files
 	 */
 	public SaveManager(File growDir) {
 		this.growDir = growDir;
@@ -94,6 +104,9 @@ public class SaveManager {
 		return newGame(input, output);
 	}
 
+	/**
+	 * @return an action which saves the current grow game properly.
+	 */
 	public Action saveAction() {
 		return new Action() {
 
@@ -113,6 +126,10 @@ public class SaveManager {
 		};
 	}
 
+	/**
+	 * @return an action which prompts the user to pick a new story, and then
+	 *         opens that story.
+	 */
 	public Action readAction() {
 		return new Action() {
 
@@ -176,6 +193,18 @@ public class SaveManager {
 		}
 	}
 
+	/**
+	 * Effect: saves an image so that it is associated with the specified scene
+	 * in the game.
+	 *
+	 * @param s
+	 *            the scene
+	 * @param g
+	 *            the game
+	 * @param i
+	 *            the image
+	 * @return true if the save succedded, false otherwise.
+	 */
 	public boolean saveImage(Scene s, Game g, Image i) {
 		File imageFile = new File(new File(growDir, g.name()), s.name() + ".jpeg");
 		try {
@@ -193,6 +222,10 @@ public class SaveManager {
 		return true;
 	}
 
+	/**
+	 * @return an action which prompts the user to create a new story and saves
+	 *         the new story.
+	 */
 	public Action newAction() {
 		return new Action() {
 
@@ -245,6 +278,10 @@ public class SaveManager {
 		return new Game(new Scene("start", "Welcome to grow! Your world is empty :(. But, you can fill it with stuff! To get started, type \":help\"!"), fileName);
 	}
 
+	/**
+	 * @return a random character, chosen from the numerals, the upppercase
+	 *         letters, and the lowercase letters.
+	 */
 	private static char randomAlphNum() {
 		int x = (int) (Math.random() * 62);
 		if (x < 26) {
@@ -256,6 +293,9 @@ public class SaveManager {
 		}
 	}
 
+	/**
+	 * @return an action which quits and saves the current state.
+	 */
 	public Action quitAction() {
 		return new Action() {
 

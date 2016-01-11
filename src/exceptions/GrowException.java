@@ -13,6 +13,9 @@ public abstract class GrowException extends Exception {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * @return an error message describing the exception
+	 */
 	public abstract String errorMessage();
 
 	@Override

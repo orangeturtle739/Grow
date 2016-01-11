@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 
 import exceptions.GrowException;
 import grow.action.Action;
-import grow.action.Description;
+import grow.action.ChangeDescription;
 import grow.action.EditAction;
 import grow.action.EditActionOrder;
 import grow.action.EditOrder;
@@ -24,11 +24,30 @@ import grow.action.Restart;
 import grow.action.View;
 import javafx.scene.image.Image;
 
+/**
+ * Represents: a game of Grow
+ *
+ * @author Jacob Glueck
+ *
+ */
 public class GrowGame {
 
+	/**
+	 * The list of responses to unknown input
+	 */
 	private static final List<String> unknownInput = readList();
+	/**
+	 * A random number generator used to randomly pick a response from
+	 * {@link #unknownInput}.
+	 */
 	private static final Random rnd = new Random();
 
+	/**
+	 * Reads the {@code unknown.txt} file and returns the data to be stored
+	 * {@link #unknownInput}.
+	 *
+	 * @return the data
+	 */
 	private static List<String> readList() {
 		Scanner s = new Scanner(GrowGame.class.getResourceAsStream("unknown.txt"));
 		List<String> words = new ArrayList<>();
@@ -39,26 +58,61 @@ public class GrowGame {
 		return Collections.unmodifiableList(words);
 	}
 
+	/**
+	 * @return a random response from {@link #unknownInput}.
+	 */
 	private static String randomResponse() {
 		return unknownInput.get(rnd.nextInt(unknownInput.size()));
 	}
 
+	/**
+	 * The scanner used for input to this game
+	 */
 	private final Scanner input;
+	/**
+	 * The print stream used for output from this game
+	 */
 	private final PrintStream output;
+	/**
+	 * The save manager for this game
+	 */
 	private final SaveManager saveManager;
+	/**
+	 * The game.
+	 */
 	private Game world;
 
+	/**
+	 * Creates: a new game of Grow which reads input from {@code input} and
+	 * prints output to {@code output}.
+	 *
+	 * @param input
+	 *            the input.
+	 * @param output
+	 *            the output.
+	 */
 	public GrowGame(Scanner input, PrintStream output) {
 		this.input = input;
 		this.output = output;
 		saveManager = new SaveManager(new File(System.getProperty("user.home"), "grow"));
 	}
 
+	/**
+	 * Starts a new game of grow that does not display images. Does not return
+	 * until complete.
+	 */
 	public void play() {
 		play((f) -> {
 		});
 	}
 
+	/**
+	 * Starts a new game of grow that does display images using the specified
+	 * image consumer. Does not return until complete.
+	 *
+	 * @param imageDisplayer
+	 *            the consumer which consumes files and displays the images.
+	 */
 	public void play(Consumer<File> imageDisplayer) {
 		try {
 			Scene base = new Scene("default", "For help and instructions, type \"help\".");
@@ -74,7 +128,7 @@ public class GrowGame {
 			base.rules().add(new Rule(Arrays.asList(saveManager.readAction()), "change story"));
 			base.rules().add(new Rule(Arrays.asList(saveManager.newAction()), "new"));
 			base.rules().add(new Rule(Arrays.asList(new View()), "view"));
-			base.rules().add(new Rule(Arrays.asList(new Description()), "edit description"));
+			base.rules().add(new Rule(Arrays.asList(new ChangeDescription()), "edit description"));
 			base.rules().add(new Rule(Arrays.asList(new EditOrder()), "edit order"));
 			base.rules().add(new Rule(Arrays.asList(new EditPattern()), "edit patterns"));
 			base.rules().add(new Rule(Arrays.asList(new RemoveRule()), "remove rule"));
@@ -114,11 +168,7 @@ public class GrowGame {
 
 	/**
 	 * Effect: tries to save and load the image into the game.
-	 *
-	 * @param s
-	 *            the scene
-	 * @param g
-	 *            the game
+	 * 
 	 * @param i
 	 *            the image
 	 * @return true if it worked, false otherwise.

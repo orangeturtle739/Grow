@@ -6,6 +6,13 @@ import java.util.Scanner;
 import grow.Game;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to remove a single rule from a
+ * scene.
+ * 
+ * @author Jacob Glueck
+ *
+ */
 public class RemoveRule extends Action {
 
 	@Override

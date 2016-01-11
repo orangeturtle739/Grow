@@ -6,8 +6,18 @@ import java.util.Scanner;
 import grow.Game;
 import grow.Scene;
 
+/**
+ * Represents: an action that allows the user to go back to the first scene in
+ * an adventure.
+ *
+ * @author Jacob Glueck
+ *
+ */
 public class Restart extends Action {
 
+	/**
+	 * The prefix
+	 */
 	public static final char PREFIX = 'r';
 
 	@Override

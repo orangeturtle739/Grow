@@ -1,11 +1,11 @@
 package grow;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 
 import grow.action.Action;
+import javafx.scene.image.Image;
 
 /**
  * Represents: a scene in grow
@@ -33,7 +33,7 @@ public class Scene {
 	/**
 	 * The image file for this scene
 	 */
-	private File imageFile;
+	private Image image;
 
 	/**
 	 * Creates: a new scene with no actions with the specified name and an empty
@@ -43,15 +43,15 @@ public class Scene {
 	 *            the name of this scene.
 	 * @param description
 	 *            the text to be displayed when the user first enters the room
-	 * @param imageFile
-	 *            the file with an image for this scene. If null, there is no
-	 *            image for this scene.
+	 * @param image
+	 *            the image for this scene. If null, there is no image for this
+	 *            scene.
 	 */
-	public Scene(String name, String description, File imageFile) {
+	public Scene(String name, String description, Image image) {
 		this.name = name;
 		rules = new LinkedList<>();
 		this.description = description;
-		this.imageFile = imageFile;
+		this.image = image;
 	}
 
 	/**
@@ -70,18 +70,18 @@ public class Scene {
 	/**
 	 * Effect: sets the image file to the specified image
 	 *
-	 * @param imageFile
+	 * @param image
 	 *            the image file
 	 */
-	public void setImageFile(File imageFile) {
-		this.imageFile = imageFile;
+	public void setImage(Image image) {
+		this.image = image;
 	}
 
 	/**
 	 * @return the image file
 	 */
-	public File imageFile() {
-		return imageFile;
+	public Image image() {
+		return image;
 	}
 
 	/**

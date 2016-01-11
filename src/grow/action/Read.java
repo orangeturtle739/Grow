@@ -1,7 +1,6 @@
 package grow.action;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
 
@@ -26,11 +25,11 @@ public class Read extends Action {
 	/**
 	 * The file in which the state is saved
 	 */
-	private final File stateFile;
+	private final InputStream stateFile;
 	/**
 	 * The file in which the adventure is saved
 	 */
-	private final File adventureFile;
+	private final InputStream adventureFile;
 
 	/**
 	 * Creates: a read action that reads that state form the specified file, and
@@ -41,7 +40,7 @@ public class Read extends Action {
 	 * @param adventureFile
 	 *            the adventure file
 	 */
-	public Read(File stateFile, File adventureFile) {
+	public Read(InputStream stateFile, InputStream adventureFile) {
 		this.stateFile = stateFile;
 		this.adventureFile = adventureFile;
 	}
@@ -52,7 +51,9 @@ public class Read extends Action {
 			Scanner state = new Scanner(stateFile);
 			Scanner adventure = new Scanner(adventureFile);
 			world.loadGame(state, adventure);
-		} catch (FileNotFoundException | GrowException e) {
+			state.close();
+			adventure.close();
+		} catch (GrowException e) {
 			output.printf("Problem with reading state (%s) or adventure (%s): %s", stateFile.toString(), adventureFile.toString(), e.getMessage());
 			output.println();
 		}

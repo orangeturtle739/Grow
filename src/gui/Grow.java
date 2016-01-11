@@ -108,7 +108,7 @@ public class Grow extends Application {
 			g.play((f) -> {
 				if (f != null) {
 					try {
-						setBackground(image, new Image(new FileInputStream(f)));
+						setBackground(image, f);
 						return;
 					} catch (Exception e1) {
 						System.out.println("Image not found: " + f);

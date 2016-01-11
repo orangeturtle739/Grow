@@ -113,7 +113,7 @@ public class GrowGame {
 	 * @param imageDisplayer
 	 *            the consumer which consumes files and displays the images.
 	 */
-	public void play(Consumer<File> imageDisplayer) {
+	public void play(Consumer<Image> imageDisplayer) {
 		try {
 			Scene base = new Scene("default", "For help and instructions, type \"help\".");
 			base.rules()
@@ -135,7 +135,7 @@ public class GrowGame {
 			base.rules().add(new Rule(Arrays.asList(new EditAction()), "edit actions"));
 			base.rules().add(new Rule(Arrays.asList(new EditActionOrder()), "reorder actions"));
 			world = saveManager.init(input, output);
-			imageDisplayer.accept(world.current().imageFile());
+			imageDisplayer.accept(world.current().image());
 			while (world.current() != null) {
 				String line = input.nextLine();
 
@@ -154,7 +154,7 @@ public class GrowGame {
 						if (next == null) {
 							break;
 						} else {
-							imageDisplayer.accept(next.imageFile());
+							imageDisplayer.accept(next.image());
 						}
 					}
 				}
@@ -168,7 +168,7 @@ public class GrowGame {
 
 	/**
 	 * Effect: tries to save and load the image into the game.
-	 * 
+	 *
 	 * @param i
 	 *            the image
 	 * @return true if it worked, false otherwise.

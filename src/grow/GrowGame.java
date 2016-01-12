@@ -10,7 +10,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
-import exceptions.GrowException;
+import exceptions.NoSuchScene;
 import grow.action.Action;
 import grow.action.ChangeDescription;
 import grow.action.EditAction;
@@ -81,6 +81,10 @@ public class GrowGame {
 	 * The game.
 	 */
 	private Game world;
+	/**
+	 * The base scene, with all the built-in commands
+	 */
+	private final Scene base;
 
 	/**
 	 * Creates: a new game of Grow which reads input from {@code input} and
@@ -95,6 +99,108 @@ public class GrowGame {
 		this.input = input;
 		this.output = output;
 		saveManager = new SaveManager(new File(System.getProperty("user.home"), "grow"));
+		world = null;
+		base = new Scene("default", "For help and instructions, type \"help\".");
+		base.rules()
+				.add(new Rule(
+						Arrays.asList(new Print(
+								"To quit, type \":quit\"\nTo start over again, type \":restart\"\nTo add a rule to this scene, type \":extend\"\nTo remove a rule from this scene, type \":remove rule\"\nTo open a different adventure, type \":change story\"\nTo create a new adventure, type \":new\"\nTo view all the rules for the current scene, type \":view\"\nTo change the order of the rules for the current scene, type \":edit order\"\nTo change the description for the current scene, type \":edit description\"\nTo edit a pattern in one of the rules for the current scene, type \":edit patterns\"\nTo edit the actions in one of the rules for the current scene, type \":edit actions\"\nTo change the order of the actions in one of the rules for the current scene, type \":reorder actions\"")),
+				"help"));
+		base.rules().add(new Rule(Arrays.asList(new Extend()), "extend"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.quitAction()), "quit"));
+		base.rules().add(new Rule(Arrays.asList(new Restart()), "restart"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.saveAction()), "save"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.readAction()), "change story"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.newAction()), "new"));
+		base.rules().add(new Rule(Arrays.asList(new View()), "view"));
+		base.rules().add(new Rule(Arrays.asList(new ChangeDescription()), "edit description"));
+		base.rules().add(new Rule(Arrays.asList(new EditOrder()), "edit order"));
+		base.rules().add(new Rule(Arrays.asList(new EditPattern()), "edit patterns"));
+		base.rules().add(new Rule(Arrays.asList(new RemoveRule()), "remove rule"));
+		base.rules().add(new Rule(Arrays.asList(new EditAction()), "edit actions"));
+		base.rules().add(new Rule(Arrays.asList(new EditActionOrder()), "reorder actions"));
+	}
+
+	/**
+	 * Initializes the game. Throws an {@link IllegalStateException} if the game
+	 * has already been initialized.
+	 *
+	 * @param imageDisplayer
+	 *            the image displayer used to display the initial image
+	 */
+	public void init(Consumer<Image> imageDisplayer) {
+		if (world != null) {
+			throw new IllegalStateException();
+		}
+		world = saveManager.init(input, output);
+		imageDisplayer.accept(world.current().image());
+	}
+
+	/**
+	 * Does not display images.
+	 *
+	 * @see GrowGame#init(Consumer)
+	 */
+	public void init() {
+		init((i) -> {
+		});
+	}
+
+	/**
+	 * Effect: executes a single turn using {@code line} as the initial input,
+	 * and using the input stream to get the rest of the input. If the turn
+	 * results in the termination of the game, this method returns false, and
+	 * resets the game so that another call to {@link #init(Consumer)} will
+	 * restart it.
+	 *
+	 * @param line
+	 *            the line to use as the initial input
+	 * @param imageDisplayer
+	 *            the image displayer
+	 * @return true if the game is still going, false if the game is over
+	 */
+	public boolean doTurn(String line, Consumer<Image> imageDisplayer) {
+		List<Action> actions = null;
+		// Check to see if it is a command
+		if (line.startsWith(":")) {
+			actions = base.act(line.substring(1));
+		}
+		actions = actions == null ? world.current().act(line) : actions;
+		if (actions == null) {
+			output.println(randomResponse());
+		} else {
+			for (Action a : actions) {
+				Scene next = a.act(world.current(), world, input, output);
+				try {
+					world.move(next);
+				} catch (NoSuchScene e) {
+					output.println("Something bad has occurred. Please tell the developer.");
+					e.printStackTrace(output);
+					next = null;
+				}
+				if (next == null) {
+					// The game is over, so reset (allow another call to init)
+					world = null;
+					return false;
+				} else {
+					imageDisplayer.accept(next.image());
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Does not display images
+	 * 
+	 * @param line
+	 *            the initial input
+	 * @return true if the game is still running
+	 * @see GrowGame#doTurn(String, Consumer)
+	 */
+	public boolean doTurn(String line) {
+		return doTurn(line, (i) -> {
+		});
 	}
 
 	/**
@@ -114,55 +220,9 @@ public class GrowGame {
 	 *            the consumer which consumes files and displays the images.
 	 */
 	public void play(Consumer<Image> imageDisplayer) {
-		try {
-			Scene base = new Scene("default", "For help and instructions, type \"help\".");
-			base.rules()
-					.add(new Rule(
-							Arrays.asList(new Print(
-									"To quit, type \":quit\"\nTo start over again, type \":restart\"\nTo add a rule to this scene, type \":extend\"\nTo remove a rule from this scene, type \":remove rule\"\nTo open a different adventure, type \":change story\"\nTo create a new adventure, type \":new\"\nTo view all the rules for the current scene, type \":view\"\nTo change the order of the rules for the current scene, type \":edit order\"\nTo change the description for the current scene, type \":edit description\"\nTo edit a pattern in one of the rules for the current scene, type \":edit patterns\"\nTo edit the actions in one of the rules for the current scene, type \":edit actions\"\nTo change the order of the actions in one of the rules for the current scene, type \":reorder actions\"")),
-					"help"));
-			base.rules().add(new Rule(Arrays.asList(new Extend()), "extend"));
-			base.rules().add(new Rule(Arrays.asList(saveManager.quitAction()), "quit"));
-			base.rules().add(new Rule(Arrays.asList(new Restart()), "restart"));
-			base.rules().add(new Rule(Arrays.asList(saveManager.saveAction()), "save"));
-			base.rules().add(new Rule(Arrays.asList(saveManager.readAction()), "change story"));
-			base.rules().add(new Rule(Arrays.asList(saveManager.newAction()), "new"));
-			base.rules().add(new Rule(Arrays.asList(new View()), "view"));
-			base.rules().add(new Rule(Arrays.asList(new ChangeDescription()), "edit description"));
-			base.rules().add(new Rule(Arrays.asList(new EditOrder()), "edit order"));
-			base.rules().add(new Rule(Arrays.asList(new EditPattern()), "edit patterns"));
-			base.rules().add(new Rule(Arrays.asList(new RemoveRule()), "remove rule"));
-			base.rules().add(new Rule(Arrays.asList(new EditAction()), "edit actions"));
-			base.rules().add(new Rule(Arrays.asList(new EditActionOrder()), "reorder actions"));
-			world = saveManager.init(input, output);
-			imageDisplayer.accept(world.current().image());
-			while (world.current() != null) {
-				String line = input.nextLine();
-
-				List<Action> actions = null;
-				// Check to see if it is a command
-				if (line.startsWith(":")) {
-					actions = base.act(line.substring(1));
-				}
-				actions = actions == null ? world.current().act(line) : actions;
-				if (actions == null) {
-					output.println(randomResponse());
-				} else {
-					for (Action a : actions) {
-						Scene next = a.act(world.current(), world, input, output);
-						world.move(next);
-						if (next == null) {
-							break;
-						} else {
-							imageDisplayer.accept(next.image());
-						}
-					}
-				}
-			}
-		} catch (GrowException e) {
-			output.println("Something unusual occurred: ");
-			e.printStackTrace(output);
-			output.println("Please send this information to the developer!");
+		// Keep doing turns until the game is over
+		while (doTurn(input.nextLine(), imageDisplayer)) {
+			;
 		}
 	}
 

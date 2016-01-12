@@ -238,8 +238,12 @@ public class Console extends VBox {
 	 */
 	public void simulateInput(String str) {
 		Platform.runLater(() -> {
-			inputField.setText(str);
-			inputField.getOnAction().handle(null);
+			// Handle multi-line input properly
+			String[] split = str.split("\\R");
+			for (String line : split) {
+				inputField.setText(line);
+				inputField.getOnAction().handle(null);
+			}
 		});
 	}
 

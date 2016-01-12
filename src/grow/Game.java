@@ -123,6 +123,16 @@ public class Game {
 	}
 
 	/**
+	 * Effect: change the name of this adventure to {@code name}
+	 * 
+	 * @param name
+	 *            the new name
+	 */
+	public void setName(String name) {
+		adventureName = name;
+	}
+
+	/**
 	 * Effect: adds the specified scene to the game, and throws a
 	 * {@link SceneExists} exception if the scene already exists.
 	 *

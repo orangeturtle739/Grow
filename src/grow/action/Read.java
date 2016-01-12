@@ -33,7 +33,9 @@ public class Read extends Action {
 
 	/**
 	 * Creates: a read action that reads that state form the specified file, and
-	 * the adventure form the specified adventure file.
+	 * the adventure form the specified adventure file. If there is not state
+	 * file, it loads the adventure, and sets the state to the start of the
+	 * adventure.
 	 *
 	 * @param stateFile
 	 *            the state file
@@ -48,10 +50,16 @@ public class Read extends Action {
 	@Override
 	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
 		try {
-			Scanner state = new Scanner(stateFile);
 			Scanner adventure = new Scanner(adventureFile);
-			world.loadGame(state, adventure);
-			state.close();
+			if (stateFile != null) {
+				Scanner state = new Scanner(stateFile);
+				world.loadGame(state, adventure);
+				state.close();
+			} else {
+				world.loadAdventure(adventure);
+				world.move(world.start());
+				world.score().set(0);
+			}
 			adventure.close();
 		} catch (GrowException e) {
 			output.printf("Problem with reading state (%s) or adventure (%s): %s", stateFile.toString(), adventureFile.toString(), e.getMessage());

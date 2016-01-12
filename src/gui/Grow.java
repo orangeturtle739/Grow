@@ -24,6 +24,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -66,16 +68,14 @@ public class Grow extends Application {
 		SplitPane split = new SplitPane(image, c);
 		split.setOrientation(Orientation.VERTICAL);
 		split.setDividerPositions(.7, .3);
-		primaryStage.setScene(new Scene(new BorderPane(split), 1000, 1000));
-		primaryStage.show();
+		BorderPane mainPane = new BorderPane(split);
+		primaryStage.setScene(new Scene(mainPane, 1000, 1000));
 		g = new GrowGame(c.input(), c.output());
 
 		// Handle drag and drop images
 		image.setOnDragOver(event -> {
 			if (event.getGestureSource() != image && event.getDragboard().hasFiles() || event.getDragboard().hasImage()) {
 				event.acceptTransferModes(TransferMode.COPY);
-			} else if (event.getGestureSource() != image && event.getDragboard().hasString()) {
-				System.out.println(event.getDragboard().getString());
 			}
 			event.consume();
 		});
@@ -134,7 +134,68 @@ public class Grow extends Application {
 			}
 			e.consume();
 		});
+
+		// Handle drag and drop adventures
+		c.setOnDragDetected((e) -> {
+			if (gameThread.inject(":save")) {
+				Dragboard d = c.startDragAndDrop(TransferMode.COPY);
+				ClipboardContent content = new ClipboardContent();
+				content.putFiles(Arrays.asList(g.adventureFile()));
+				d.setContent(content);
+				e.consume();
+			}
+		});
+		c.setOnDragOver(event -> {
+			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
+				event.acceptTransferModes(TransferMode.COPY);
+			}
+			event.consume();
+		});
+		c.setOnDragEntered(event -> {
+			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
+				c.setEffect(new Glow());
+			}
+			event.consume();
+		});
+		c.setOnDragExited(event -> {
+			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
+				c.setEffect(null);
+			}
+			event.consume();
+		});
+		c.setOnDragDropped(event -> {
+			File newAdventure = null;
+			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
+				if (event.getDragboard().hasFiles()) {
+					List<File> files = event.getDragboard().getFiles();
+					if (files.size() == 1) {
+						try {
+							newAdventure = files.get(0);
+							if (!newAdventure.getName().endsWith(".zip")) {
+								newAdventure = null;
+							}
+						} catch (Exception e1) {
+							newAdventure = null;
+						}
+					}
+				}
+			}
+
+			if (newAdventure != null) {
+				final File realName = newAdventure;
+				if (gameThread.inject(":import\n" + realName.getAbsolutePath().toString())) {
+					event.setDropCompleted(true);
+				} else {
+					event.setDropCompleted(false);
+				}
+			}
+
+			event.consume();
+		});
+
 		primaryStage.setTitle("Grow");
+
+		primaryStage.show();
 	}
 
 	/**
@@ -222,6 +283,8 @@ public class Grow extends Application {
 							while (toInject == null) {
 								injection.wait();
 								toInject = injection.get();
+								// Make sure the injection is marked as used.
+								injection.set(null);
 							}
 							c.simulateInput(toInject);
 						}

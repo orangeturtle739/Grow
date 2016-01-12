@@ -8,10 +8,13 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -50,6 +53,45 @@ public class ZipLocker {
 	}
 
 	/**
+	 * Effect: copies all the files from one ZipLocker into this locker.
+	 *
+	 * @param other
+	 *            the other locker
+	 * @throws IOException
+	 *             if it fails
+	 */
+	public void copy(ZipLocker other) throws IOException {
+		Files.walkFileTree(other.fs.getPath(other.rootFileName()), new FileVisitor<Path>() {
+			@Override
+			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+				String[] internalPath = new String[file.getNameCount() - 1];
+				for (int x = 0; x < internalPath.length; x++) {
+					internalPath[x] = file.getName(x + 1).toString();
+				}
+				Path to = fs.getPath(rootFileName(), internalPath);
+				Files.createDirectories(to.toAbsolutePath().getParent());
+				Files.copy(file, to);
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+				return FileVisitResult.CONTINUE;
+			}
+
+			@Override
+			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+				return FileVisitResult.CONTINUE;
+			}
+		});
+	}
+
+	/**
 	 * Opens a stream to write to the internal directory.
 	 *
 	 * @param parts
@@ -78,6 +120,19 @@ public class ZipLocker {
 	 */
 	public InputStream read(String... more) throws IOException {
 		return Files.newInputStream(fs.getPath(rootFileName(), more));
+	}
+
+	/**
+	 * Effect: deletes a file from the ZipLocker, if it exists. Not sure what
+	 * happens if the file does not exist.
+	 *
+	 * @param more
+	 *            the path to the file
+	 * @throws IOException
+	 *             if there is a problem
+	 */
+	public void delete(String... more) throws IOException {
+		Files.delete(fs.getPath(rootFileName(), more));
 	}
 
 	/**

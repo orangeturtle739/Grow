@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -111,12 +113,17 @@ public class SaveManager {
 	 *
 	 * @param adventureName
 	 *            the name of the adventure
-	 * @return the stream
+	 * @return the stream or null if there is no state file
 	 * @throws FileNotFoundException
 	 *             if there is a problem
 	 */
 	private InputStream readAdventureState(String adventureName) throws FileNotFoundException {
-		return new FileInputStream(new File(new File(growDir, ADVENTURE_STATE), adventureName + "_state.txt"));
+		File f = new File(new File(growDir, ADVENTURE_STATE), adventureName + "_state.txt");
+		if (!f.exists()) {
+			return null;
+		} else {
+			return new FileInputStream(f);
+		}
 	}
 
 	/**
@@ -148,7 +155,7 @@ public class SaveManager {
 	 *             exception if the image could not be found
 	 */
 	private InputStream readImage(String adventureName, String fileName) throws IOException {
-		ZipLocker zip = new ZipLocker(new File(new File(growDir, ADVENTURES), adventureName + ".zip"));
+		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
 		InputStream stream;
 		try {
 			stream = zip.read(fileName);
@@ -222,7 +229,7 @@ public class SaveManager {
 	 *             if there is a problem
 	 */
 	private OutputStream writeImage(String adventureName, String fileName) throws IOException {
-		ZipLocker zip = new ZipLocker(new File(new File(growDir, ADVENTURES), adventureName + ".zip"));
+		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
 		OutputStream stream = zip.write(fileName);
 		return new OutputStream() {
 			@Override
@@ -254,9 +261,12 @@ public class SaveManager {
 				Scanner s = new Scanner(currentFile);
 				String last = s.nextLine();
 				s.close();
-				File gameFile = new File(growDir, last);
-				Scanner state = new Scanner(readAdventureState(gameFile.getName()));
-				Scanner game = new Scanner(readAdventure(gameFile.getName()));
+				File gameFile = new File(new File(growDir, ADVENTURES), last + ".zip");
+				if (!gameFile.exists()) {
+					throw new IOException("Game file " + gameFile + " does not exist.");
+				}
+				Scanner state = new Scanner(readAdventureState(last));
+				Scanner game = new Scanner(readAdventure(last));
 				Game r = Game.parseGame(state, game);
 				state.close();
 				game.close();
@@ -432,6 +442,125 @@ public class SaveManager {
 	}
 
 	/**
+	 * Creates: an action which imports a file. The path of the file to import
+	 * is given on the input stream. It should be absolute.
+	 *
+	 * @return the import action
+	 */
+	public Action importAction() {
+		return new Action() {
+			@Override
+			public char commandPrefix() {
+				return 0;
+			}
+
+			@Override
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+				File adventureZip = new File(input.nextLine());
+				Set<String> fileNames = adventureFileNames();
+				// Remove the trailing .zip
+				if (!adventureZip.getName().endsWith(".zip") || !adventureZip.exists()) {
+					output.println("Bad file!");
+					return current;
+				}
+				String baseName = adventureZip.getName().substring(0, adventureZip.getName().length() - ".zip".length());
+				String genName = baseName;
+				int v = 1;
+				// Only worry about version numbers if the base name exists
+				if (fileNames.contains(genName + ".zip")) {
+					Matcher m = Pattern.compile(".*_v\\d+$").matcher(baseName);
+					if (m.matches()) {
+						v = Integer.parseInt(m.group(1));
+						// Remove the version number
+						baseName = baseName.substring(0, baseName.length() - m.group().length());
+					}
+				}
+				while (fileNames.contains(genName + ".zip")) {
+					genName = baseName + "_v" + (++v);
+				}
+
+				String fileName = adventureZip.getName();
+				while (fileNames.contains(fileName)) {
+					output.println("You already have an adventure called " + fileName.substring(0, fileName.length() - ".zip".length()));
+					output.println("What would you like to rename the adventure to? (Hit enter for " + genName + ")");
+					fileName = input.nextLine();
+					if (fileName.length() == 0) {
+						fileName = genName + ".zip";
+					} else {
+						fileName += ".zip";
+					}
+				}
+
+				String newAdventureName = fileName.substring(0, fileName.length() - ".zip".length());
+
+				ZipLocker zip = null;
+				ZipLocker original = null;
+
+				try {
+					zip = new ZipLocker(adventureFile(newAdventureName));
+					original = new ZipLocker(adventureZip);
+					zip.copy(original);
+					original.close();
+					try {
+						String originalStoryName = adventureZip.getName().substring(0, adventureZip.getName().length() - ".zip".length()) + "_world.txt";
+						if (!originalStoryName.equals(newAdventureName + "_world.txt")) {
+							InputStream i = zip.read(originalStoryName);
+							OutputStream o = zip.write(newAdventureName + "_world.txt");
+							int r;
+							// Copy the file
+							while ((r = i.read()) != -1) {
+								o.write(r);
+							}
+							i.close();
+							o.close();
+							zip.delete(originalStoryName);
+						} else {
+							// Just make sure the file exists
+							zip.read(originalStoryName).close();
+						}
+					} catch (NoSuchFileException e1) {
+						output.println("Invalid ZIP file!");
+						return current;
+					}
+				} catch (IOException e) {
+					output.println("Problem importing");
+					return current;
+				} finally {
+					try {
+						zip.close();
+					} catch (IOException e) {
+						output.println("Problem closing ZIP file: " + e.getMessage());
+						return current;
+					}
+				}
+				try {
+					current = new Read(readAdventureState(newAdventureName), readAdventure(newAdventureName)).act(current, world, input, output);
+					output.println("Imported adventure!");
+					// Link the images
+					linkImages(world);
+					// Change the name
+					world.setName(newAdventureName);
+					return new Go(current.name()).act(current, world, input, output);
+				} catch (IOException e) {
+					output.println("Problem reading the new adventure: " + e.getMessage());
+					return current;
+				}
+			}
+		};
+	}
+
+	/**
+	 * Gets the ZIP file where an adventure is stored
+	 *
+	 * @param adventureName
+	 *            the adventure name
+	 * @return the file where it is stored
+	 */
+	public File adventureFile(String adventureName) {
+		return new File(new File(growDir, ADVENTURES), adventureName + ".zip");
+	}
+
+	/**
 	 * Creates: a new game
 	 *
 	 * @param input
@@ -441,10 +570,7 @@ public class SaveManager {
 	 * @return the new game
 	 */
 	private Game newGame(Scanner input, PrintStream output) {
-		Set<String> fileNames = new HashSet<>();
-		for (File f : new File(growDir, ADVENTURES).listFiles()) {
-			fileNames.add(f.getName());
-		}
+		Set<String> fileNames = adventureFileNames();
 		String fileName;
 		do {
 			fileName = "story_" + randomAlphNum() + randomAlphNum() + randomAlphNum() + randomAlphNum() + randomAlphNum() + randomAlphNum();
@@ -461,6 +587,17 @@ public class SaveManager {
 		}
 		fileName = line.length() == 0 ? fileName : line;
 		return new Game(new Scene("start", "Welcome to grow! Your world is empty :(. But, you can fill it with stuff! To get started, type \":help\"!"), fileName);
+	}
+
+	/**
+	 * @return the names of all the existing adventures.
+	 */
+	private Set<String> adventureFileNames() {
+		Set<String> fileNames = new HashSet<>();
+		for (File f : new File(growDir, ADVENTURES).listFiles()) {
+			fileNames.add(f.getName());
+		}
+		return fileNames;
 	}
 
 	/**

@@ -119,6 +119,7 @@ public class GrowGame {
 		base.rules().add(new Rule(Arrays.asList(new RemoveRule()), "remove rule"));
 		base.rules().add(new Rule(Arrays.asList(new EditAction()), "edit actions"));
 		base.rules().add(new Rule(Arrays.asList(new EditActionOrder()), "reorder actions"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.importAction()), "import"));
 	}
 
 	/**
@@ -192,7 +193,7 @@ public class GrowGame {
 
 	/**
 	 * Does not display images
-	 * 
+	 *
 	 * @param line
 	 *            the initial input
 	 * @return true if the game is still running
@@ -239,4 +240,22 @@ public class GrowGame {
 		}
 		return saveManager.saveImage(world.current(), world, i);
 	}
+
+	/**
+	 * @return the ZIP file where the current adventure is stored
+	 */
+	public File adventureFile() {
+		return saveManager.adventureFile(world.name());
+	}
+
+	// /**
+	// * Effect: imports an adventure from a zip, and switches to it.
+	// *
+	// * @param adventureZip
+	// * the adventure zip
+	// */
+	// public void importAdventure(File adventureZip) {
+	// saveManager.importAction(adventureZip).act(world.current(), world, input,
+	// output);
+	// }
 }

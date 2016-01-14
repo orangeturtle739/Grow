@@ -2,15 +2,26 @@ package gui;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import grow.GrowGame;
 import javafx.application.Application;
@@ -38,6 +49,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 /**
@@ -70,8 +82,44 @@ public class Grow extends Application {
 		split.setDividerPositions(.7, .3);
 		BorderPane mainPane = new BorderPane(split);
 		primaryStage.setScene(new Scene(mainPane, 1000, 1000));
-		g = new GrowGame(c.input(), c.output());
 
+		// Find the grow root directory
+		if (getRoot() == null) {
+			File growRoot = null;
+			File defaultRoot = new File(System.getProperty("user.home"), "grow");
+			if (!defaultRoot.exists() || defaultRoot.listFiles(f -> f.isDirectory() || !f.getName().startsWith(".")).length == 0) {
+				growRoot = defaultRoot;
+			} else {
+				new Alert(AlertType.INFORMATION, "Welcome to grow! Since this is the first time you have played, could you please choose a directory for me to save your files?", ButtonType.OK)
+						.showAndWait();
+				DirectoryChooser chooser = new DirectoryChooser();
+				chooser.setInitialDirectory(defaultRoot);
+				chooser.setTitle("Choose grow home");
+				while (growRoot == null) {
+					growRoot = chooser.showDialog(primaryStage);
+					if (growRoot != null && growRoot.exists()) {
+						if (!growRoot.isDirectory()) {
+							new Alert(AlertType.ERROR, "You must chose a folder!", ButtonType.OK);
+							growRoot = null;
+						} else if (growRoot.listFiles(f -> f.isDirectory() || !f.getName().startsWith(".")).length != 0) {
+							Optional<ButtonType> result = new Alert(AlertType.CONFIRMATION, "That folder is not empty. Are you sure?", ButtonType.YES, ButtonType.NO).showAndWait();
+							if (!result.isPresent() || !result.get().equals(ButtonType.YES)) {
+								growRoot = null;
+							}
+						}
+					}
+				}
+			}
+			growRoot.mkdirs();
+			try {
+				setRoot(growRoot);
+			} catch (BackingStoreException e1) {
+				new Alert(AlertType.ERROR, "Problem saving the grow root: " + e1.getMessage() + "\n. The program will now exit.", ButtonType.OK).showAndWait();
+				Platform.exit();
+			}
+		}
+
+		g = new GrowGame(c.input(), c.output(), getRoot());
 		// Handle drag and drop images
 		image.setOnDragOver(event -> {
 			if (event.getGestureSource() != image && event.getDragboard().hasFiles() || event.getDragboard().hasImage()) {
@@ -220,10 +268,206 @@ public class Grow extends Application {
 	 *            the arguments.
 	 */
 	public static void main(String[] args) {
-		if (Arrays.equals(args, new String[] { "-t" })) {
-			new GrowGame(new Scanner(System.in), System.out).play();
-		} else {
-			launch(args);
+		try {
+			Map<String, List<String>> a = processArgs(args, "-t", "--grow-root", "--reset-root", "--set-root", "--help");
+
+			if (a.containsKey("--set-root")) {
+				testSize(a, 1, "--set-root must be the only flag.");
+				testSize(a.get("--set-root"), 1, "--set-root can only have one argument");
+				File root = new File(a.get("--set-root").get(0));
+				root.mkdirs();
+				setRoot(root);
+				return;
+			}
+			if (a.containsKey("--reset-root")) {
+				testSize(a, 1, "--reset-root must be the only flag.");
+				testSize(a.get("--reset-root"), 0, "--reset-root takes no arguments");
+				resetRoot();
+				return;
+			}
+			if (a.containsKey("--help")) {
+				testSize(a, 1, "--help must be the only flag");
+				testSize(a.get("--help"), 0, "--help takes no arguments");
+				System.out.println("Usage:");
+				System.out.println("Special options, must be used alone:");
+				System.out.println("--reset-root");
+				System.out.println("\tDeletes the location of the grow root. When you run grow again, it will pick a new root.");
+				System.out.println("--set-root <path to root folder>");
+				System.out.println("\tSets the grow root to the specified folder. The folder will be made if it does not exist.");
+				System.out.println("--help");
+				System.out.println("\tPrints the helpful messages that are currently being printed.");
+				System.out.println("Normal flags (may be used in combination with each other, in any order):");
+				System.out.println("-t");
+				System.out.println("\tStarts grow in text mode.");
+				System.out.println("--grow-root <path to root folder>");
+				System.out.println("\tSets the grow root to the specified folder for the current session.");
+				return;
+			}
+
+			File growRoot = null;
+			if (a.containsKey("--grow-root")) {
+				testSize(a.get("--grow-root"), 1, "--grow-root can only have one argument");
+				growRoot = new File(a.get("--grow-root").get(0));
+				growRoot.mkdirs();
+			}
+			if (a.containsKey("-t")) {
+				growRoot = growRoot == null ? getRoot() : growRoot;
+				if (growRoot == null) {
+					growRoot = new File(System.getProperty("user.home"), "grow");
+					setRoot(growRoot);
+					growRoot.mkdirs();
+					System.out.println("Using " + growRoot + " to store grow files..");
+				}
+				GrowGame g = new GrowGame(new Scanner(System.in), new PrintStream(System.out), growRoot);
+				g.init();
+				g.play();
+			} else {
+				File oldRoot = getRoot();
+				if (growRoot != null) {
+					setRoot(growRoot);
+				}
+				launch();
+				if (oldRoot != null) {
+					setRoot(oldRoot);
+				}
+			}
+		} catch (ArgumentException e) {
+			System.err.println("Bad arguments: " + e.getMessage());
+		} catch (BackingStoreException e) {
+			System.err.println("Problem with backing store.");
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Effect: stores the file as the grow root file in persistent storage.
+	 *
+	 * @param f
+	 *            the file
+	 * @throws BackingStoreException
+	 *             if there is a problem storing the file.
+	 */
+	private static void setRoot(File f) throws BackingStoreException {
+		Preferences pref = Preferences.systemNodeForPackage(Grow.class);
+		pref.put("grow.root", f.getAbsolutePath());
+		pref.flush();
+	}
+
+	/**
+	 * Effect: gets the root file from persistent storage.
+	 *
+	 * @return the file, or null if it was not there
+	 */
+	private static File getRoot() {
+		Preferences pref = Preferences.systemNodeForPackage(Grow.class);
+		String str = pref.get("grow.root", null);
+		return str == null ? null : new File(str);
+	}
+
+	/**
+	 * Effect: deletes the root file from persistent storage.
+	 *
+	 * @throws BackingStoreException
+	 *             if there is a problem
+	 */
+	private static void resetRoot() throws BackingStoreException {
+		Preferences pref = Preferences.systemNodeForPackage(Grow.class);
+		pref.clear();
+	}
+
+	/**
+	 * Effect: if the size of the map is not equal to {@code size}, throws an
+	 * {@link ArgumentException} with the specified message
+	 *
+	 * @param m
+	 *            the map
+	 * @param size
+	 *            the desired size
+	 * @param error
+	 *            the error message
+	 * @throws ArgumentException
+	 *             if the size is not right
+	 */
+	private static void testSize(Map<?, ?> m, int size, String error) throws ArgumentException {
+		if (m.size() != size) {
+			throw new ArgumentException(error);
+		}
+	}
+
+	/**
+	 * Effect: if the size of the collection is not equal to {@code size},
+	 * throws an {@link ArgumentException} with the specified message
+	 *
+	 * @param m
+	 *            the collection
+	 * @param size
+	 *            the desired size
+	 * @param error
+	 *            the error message
+	 * @throws ArgumentException
+	 *             if the size is not right
+	 */
+	private static void testSize(Collection<?> m, int size, String error) throws ArgumentException {
+		if (m.size() != size) {
+			throw new ArgumentException(error);
+		}
+	}
+
+	/**
+	 * Creates: a map of flags to their options.
+	 *
+	 * @param args
+	 *            the arguments to process
+	 * @param f
+	 *            the flags
+	 * @return a map of the flags to all the things that are not flags that
+	 *         occurred after them and before the next flag in the list of
+	 *         arguments
+	 * @throws ArgumentException
+	 *             if there is a problem
+	 */
+	private static Map<String, List<String>> processArgs(String[] args, String... f) throws ArgumentException {
+		Iterator<String> iter = Arrays.asList(args).iterator();
+		Set<String> flags = new HashSet<>(Arrays.asList(f));
+		Map<String, List<String>> result = new HashMap<>();
+		String last = null;
+		while (iter.hasNext()) {
+			String next = iter.next();
+			if (flags.contains(next)) {
+				if (result.containsKey(next)) {
+					throw new ArgumentException("Duplicate flag: " + next);
+				} else {
+					result.put(next, new LinkedList<>());
+					last = next;
+				}
+			} else if (last != null) {
+				result.get(last).add(next);
+			} else {
+				throw new ArgumentException("Unrecognized flag: " + next);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Represents: a problem parsing command line arguments.
+	 *
+	 * @author Jacob Glueck
+	 */
+	private static class ArgumentException extends Exception {
+		/**
+		 * Default UID.
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * Creates: a new exception with the specified message.
+		 *
+		 * @param str
+		 *            the message
+		 */
+		public ArgumentException(String str) {
+			super(str);
 		}
 	}
 

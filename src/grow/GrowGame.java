@@ -94,11 +94,13 @@ public class GrowGame {
 	 *            the input.
 	 * @param output
 	 *            the output.
+	 * @param growRoot
+	 *            the root directory for the storage for the game
 	 */
-	public GrowGame(Scanner input, PrintStream output) {
+	public GrowGame(Scanner input, PrintStream output, File growRoot) {
 		this.input = input;
 		this.output = output;
-		saveManager = new SaveManager(new File(System.getProperty("user.home"), "grow"));
+		saveManager = new SaveManager(growRoot);
 		world = null;
 		base = new Scene("default", "For help and instructions, type \"help\".");
 		base.rules()

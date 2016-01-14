@@ -3,5 +3,4 @@ bin/
 .project
 .DS_Store
 build/*
-!build/build.xml
 .settings/

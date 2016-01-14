@@ -33,7 +33,7 @@ public class Scene {
 	/**
 	 * The image file for this scene
 	 */
-	private Image image;
+	private volatile Image image;
 
 	/**
 	 * Creates: a new scene with no actions with the specified name and an empty

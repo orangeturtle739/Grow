@@ -7,3 +7,16 @@ While this version of the game is backwards compatiable with the version describ
 2. A drag and drop interface for importing images to scenes.
 3. A drag and drop interface for exporting and importing adventures, which are stored in ZIP files.
 2. More commands which allow for easier editing of the adventure.
+
+# Usage
+## Basic Usage
+
+1. `java -jar Grow.jar`: launches the GUI version
+1. `java -jar Grow.jar -t`: launches the text based version
+
+## Advanced Options
+
+1. `--grow-root <path to root folder>`: sets the grow root to the specified folder for the current session. Can be used with any of the forms above.
+2. `--reset-root` deletes the location of the grow root. When you run grow again, it will pick a new root. Must be used alone.
+3. `--set-root <path to root folder>`: sets the grow root to the specified folder. The folder will be made if it does not exist. Must be used alone.
+4. `--help`: prints helpful messages. Must be used alone.

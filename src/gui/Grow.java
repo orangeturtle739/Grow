@@ -346,7 +346,7 @@ public class Grow extends Application {
 	 *             if there is a problem storing the file.
 	 */
 	private static void setRoot(File f) throws BackingStoreException {
-		Preferences pref = Preferences.systemNodeForPackage(Grow.class);
+		Preferences pref = Preferences.userNodeForPackage(Grow.class);
 		pref.put("grow.root", f.getAbsolutePath());
 		pref.flush();
 	}
@@ -357,7 +357,7 @@ public class Grow extends Application {
 	 * @return the file, or null if it was not there
 	 */
 	private static File getRoot() {
-		Preferences pref = Preferences.systemNodeForPackage(Grow.class);
+		Preferences pref = Preferences.userNodeForPackage(Grow.class);
 		String str = pref.get("grow.root", null);
 		return str == null ? null : new File(str);
 	}
@@ -369,7 +369,7 @@ public class Grow extends Application {
 	 *             if there is a problem
 	 */
 	private static void resetRoot() throws BackingStoreException {
-		Preferences pref = Preferences.systemNodeForPackage(Grow.class);
+		Preferences pref = Preferences.userNodeForPackage(Grow.class);
 		pref.clear();
 	}
 

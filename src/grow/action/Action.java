@@ -53,8 +53,9 @@ public abstract class Action {
 	}
 
 	/**
-	 * Parses an action from an action string
-	 * 
+	 * Parses an action from an action string. Assumes a print action if no
+	 * prefix.
+	 *
 	 * @param action
 	 *            the action string to parse
 	 * @return the action, or null if unable to parse
@@ -90,6 +91,9 @@ public abstract class Action {
 				return new Restart();
 			case View.PREFIX:
 				return new View();
+			default:
+				// If no prefix, assume print
+				return new Print(action);
 			}
 		}
 		return null;

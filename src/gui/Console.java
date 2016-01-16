@@ -9,19 +9,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
+import javafx.scene.web.WebView;
 
 /**
  * Represents: a node which has an input stream and an output stream, which
@@ -39,7 +33,7 @@ public class Console extends VBox {
 	/**
 	 * The color of all the other text
 	 */
-	private static final Paint normalColor = new Text().getFill();
+	private static final Color normalColor = (Color) new Text().getFill();
 	/**
 	 * The font used
 	 */
@@ -79,12 +73,12 @@ public class Console extends VBox {
 	/**
 	 * The current color of the text
 	 */
-	private Paint current;
+	private Color current;
 
 	/**
 	 * The text view
 	 */
-	private final TextFlow view;
+	private final WebView view;
 	/**
 	 * The field in which the client types input
 	 */
@@ -100,21 +94,14 @@ public class Console extends VBox {
 	 * Creates: a new, empty, console.
 	 */
 	public Console() {
-		view = new TextFlow();
-		view.setPadding(new Insets(5));
-		Background white = new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY));
-		view.setBackground(white);
+		view = new WebView();
+		view.getEngine().loadContent("<html> <head> <style> p { font-family: '" + font.getFamily() + "'; font-size: " + font.getSize()
+				+ "px; display: block; margin-top: 0em; margin-bottom: 0em; margin-left: 0; margin-right: 0; } </style> </head> <body>  <div id='content'> </div> </body> </html>");
 		inputField = new TextField();
 		inputField.setFont(font);
 		inputField.setStyle("-fx-text-fill: " + toRGBCode(inputColor) + ";");
-
-		ScrollPane scroll = new ScrollPane(view);
-		scroll.setFitToHeight(true);
-		scroll.setFitToWidth(true);
-		// Always scroll to the bottom
-		view.heightProperty().addListener((observable, oldValue, newValue) -> scroll.setVvalue(1));
-		getChildren().add(scroll);
-		VBox.setVgrow(scroll, Priority.ALWAYS);
+		getChildren().add(view);
+		VBox.setVgrow(view, Priority.ALWAYS);
 		getChildren().add(inputField);
 		VBox.setVgrow(inputField, Priority.NEVER);
 
@@ -126,10 +113,21 @@ public class Console extends VBox {
 			@Override
 			public void write(int b) throws IOException {
 				synchronized (viewLock) {
-					Text t = new Text(Character.toString((char) b));
-					t.setFont(font);
-					t.setFill(current);
-					Platform.runLater(() -> view.getChildren().add(t));
+					char c = (char) b;
+					Color color = current;
+					String newPara = "var para = document.createElement('p'); para.appendChild(document.createTextNode('')); para.style.color = '" + Console.toRGBCode(color)
+							+ "'; document.getElementById('content').appendChild(para);";
+					if (c == '\n') {
+						Platform.runLater(() -> view.getEngine().executeScript(newPara));
+					} else if (c != '\n') {
+						Platform.runLater(() -> view.getEngine()
+								.executeScript("if(document.getElementById('content').lastChild==null){" + newPara + "}document.getElementById('content').lastChild.style.color = '"
+										+ Console.toRGBCode(color) + "';document.getElementById('content').lastChild.appendChild(document.createTextNode(String.fromCharCode(" + b + ")));"));
+						// The String.fromCharCode handles special characters
+						// properly.
+					}
+					// Always scroll to the bottom
+					Platform.runLater(() -> view.getEngine().executeScript("window.scrollTo(0, document.body.scrollHeight);"));
 				}
 			}
 		};
@@ -140,8 +138,7 @@ public class Console extends VBox {
 			public void write(int b) throws IOException {
 				synchronized (viewLock) {
 					// Switch to the normal color before writing, and then
-					// switch
-					// back.
+					// switch back.
 					current = normalColor;
 					echo.write(b);
 					current = inputColor;
@@ -149,6 +146,8 @@ public class Console extends VBox {
 			}
 		};
 		outputPrint = new PrintStream(output);
+		// Creates the initial HTML paragraph.
+		outputPrint.println();
 
 		inputBuffer = new LinkedBlockingQueue<>();
 		input = new InputStream() {

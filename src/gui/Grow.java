@@ -35,8 +35,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -184,15 +182,15 @@ public class Grow extends Application {
 		});
 
 		// Handle drag and drop adventures
-		c.setOnDragDetected((e) -> {
-			if (gameThread.inject(":save")) {
-				Dragboard d = c.startDragAndDrop(TransferMode.COPY);
-				ClipboardContent content = new ClipboardContent();
-				content.putFiles(Arrays.asList(g.adventureFile()));
-				d.setContent(content);
-				e.consume();
-			}
-		});
+		// c.setOnDragDetected((e) -> {
+		// if (gameThread.inject(":save")) {
+		// Dragboard d = c.startDragAndDrop(TransferMode.COPY);
+		// ClipboardContent content = new ClipboardContent();
+		// content.putFiles(Arrays.asList(g.adventureFile()));
+		// d.setContent(content);
+		// e.consume();
+		// }
+		// });
 		c.setOnDragOver(event -> {
 			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
 				event.acceptTransferModes(TransferMode.COPY);

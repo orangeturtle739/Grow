@@ -64,4 +64,13 @@
 		<mkdir dir="doc" />
 		<javadoc sourcepath="src" destdir="doc" />
 	</target>
+
+	<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="lib/appbundler-1.0.jar" />
+	<property environment="env" />
+	<target name="bundle" depends="jar">
+		<bundleapp outputdirectory="build" name="Grow" displayname="Grow" identifier="gui.Grow" mainclassname="gui.Grow" icon="icon/icon.icns">
+			<classpath file="build/Grow.jar" />
+			<runtime dir="${env.JAVA_HOME}" />
+		</bundleapp>
+	</target>
 </project>

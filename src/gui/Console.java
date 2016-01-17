@@ -97,7 +97,7 @@ public class Console extends SplitPane {
 	 */
 	public Console() {
 		view = new WebView();
-		view.getEngine().loadContent("<html> <head> <style> p { font-family: '" + font.getFamily() + "'; font-size: " + font.getSize()
+		view.getEngine().loadContent("<html> <head> <style> pre { font-family: '" + font.getFamily() + "'; font-size: " + font.getSize()
 				+ "px; display: block; margin-top: 0em; margin-bottom: 0em; margin-left: 0; margin-right: 0; } </style> </head> <body>  <div id='content'> </div> </body> </html>");
 		inputArea = new TextArea();
 		inputArea.setFont(font);
@@ -120,7 +120,7 @@ public class Console extends SplitPane {
 				synchronized (viewLock) {
 					char c = (char) b;
 					Color color = current;
-					String newPara = "var para = document.createElement('p'); para.appendChild(document.createTextNode('')); para.style.color = '" + Console.toRGBCode(color)
+					String newPara = "var para = document.createElement('pre'); para.appendChild(document.createTextNode('')); para.style.color = '" + Console.toRGBCode(color)
 							+ "'; document.getElementById('content').appendChild(para);";
 					if (c == '\n') {
 						Platform.runLater(() -> view.getEngine().executeScript(newPara));

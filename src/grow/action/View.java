@@ -2,9 +2,9 @@ package grow.action;
 
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import grow.Game;
-import grow.Rule;
 import grow.Scene;
 
 /**
@@ -23,12 +23,9 @@ public class View extends Action {
 
 	@Override
 	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
-		int count = 1;
 		output.println("Scene: " + current.name());
-		for (Rule r : current.rules()) {
-			output.printf("%-5s %s", Integer.toString(count++), r.toString());
-			output.println();
-		}
+		output.println("Description: " + current.description());
+		Util.printNumberedList("", ".", 0, 5, output, current.rules().stream().map(r -> Util.prettyRule(r)).collect(Collectors.toList()));
 		return current;
 	}
 

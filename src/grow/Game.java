@@ -13,6 +13,7 @@ import java.util.Scanner;
 import exceptions.NoSuchScene;
 import exceptions.SceneExists;
 import exceptions.SyntaxError;
+import grow.action.Util;
 
 /**
  * Represents: a grow world, which contains named scenes.
@@ -25,7 +26,7 @@ public class Game {
 	/**
 	 * The line that separates scenes
 	 */
-	private static final String SCENE_SEPARATOR = "```";
+	private static final String SCENE_SEPARATOR = new String(new char[] { Util.RESERVED_SEPERATOR, Util.RESERVED_SEPERATOR, Util.RESERVED_SEPERATOR });
 
 	/**
 	 * The map of names to scenes.
@@ -124,7 +125,7 @@ public class Game {
 
 	/**
 	 * Effect: change the name of this adventure to {@code name}
-	 * 
+	 *
 	 * @param name
 	 *            the new name
 	 */

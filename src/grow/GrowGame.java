@@ -13,13 +13,11 @@ import java.util.function.Consumer;
 import exceptions.NoSuchScene;
 import grow.action.Action;
 import grow.action.ChangeDescription;
-import grow.action.EditAction;
-import grow.action.EditActionOrder;
-import grow.action.EditOrder;
-import grow.action.EditPattern;
+import grow.action.Edit;
 import grow.action.Extend;
 import grow.action.Print;
-import grow.action.RemoveRule;
+import grow.action.Remove;
+import grow.action.Reorder;
 import grow.action.Restart;
 import grow.action.View;
 import javafx.scene.image.Image;
@@ -106,22 +104,22 @@ public class GrowGame {
 		base.rules()
 				.add(new Rule(
 						Arrays.asList(new Print(
-								"To quit, type \":quit\"\nTo start over again, type \":restart\"\nTo add a rule to this scene, type \":extend\"\nTo remove a rule from this scene, type \":remove rule\"\nTo open a different adventure, type \":change story\"\nTo create a new adventure, type \":new\"\nTo view all the rules for the current scene, type \":view\"\nTo change the order of the rules for the current scene, type \":edit order\"\nTo change the description for the current scene, type \":edit description\"\nTo edit a pattern in one of the rules for the current scene, type \":edit patterns\"\nTo edit the actions in one of the rules for the current scene, type \":edit actions\"\nTo change the order of the actions in one of the rules for the current scene, type \":reorder actions\"")),
+								"To quit, type \":quit\"\nTo start over again, type \":restart\"\nTo add a rule to this scene, type \":extend\"\nTo remove a rule from this scene, type \":remove\"\nTo change the order of the rules in this scene, type \":reorder\"\nTo change the description for the current scene, type \":description\"\nTo view all the rules for the current scene, type \":view\"\nTo open a different adventure, type \":change story\"\nTo create a new adventure, type \":new\"")),
 				"help"));
-		base.rules().add(new Rule(Arrays.asList(new Extend()), "extend"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.quitAction()), "quit"));
 		base.rules().add(new Rule(Arrays.asList(new Restart()), "restart"));
-		base.rules().add(new Rule(Arrays.asList(saveManager.saveAction()), "save"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.readAction()), "change story"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.newAction()), "new"));
+		base.rules().add(new Rule(Arrays.asList(new Extend()), "extend"));
+		base.rules().add(new Rule(Arrays.asList(new Remove()), "remove"));
+		base.rules().add(new Rule(Arrays.asList(new Edit()), "edit"));
+		base.rules().add(new Rule(Arrays.asList(new Reorder()), "reorder"));
+		base.rules().add(new Rule(Arrays.asList(new ChangeDescription()), "description"));
+
 		base.rules().add(new Rule(Arrays.asList(new View()), "view"));
-		base.rules().add(new Rule(Arrays.asList(new ChangeDescription()), "edit description"));
-		base.rules().add(new Rule(Arrays.asList(new EditOrder()), "edit order"));
-		base.rules().add(new Rule(Arrays.asList(new EditPattern()), "edit patterns"));
-		base.rules().add(new Rule(Arrays.asList(new RemoveRule()), "remove rule"));
-		base.rules().add(new Rule(Arrays.asList(new EditAction()), "edit actions"));
-		base.rules().add(new Rule(Arrays.asList(new EditActionOrder()), "reorder actions"));
+
 		base.rules().add(new Rule(Arrays.asList(saveManager.importAction()), "import"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.saveAction()), "save"));
 	}
 
 	/**

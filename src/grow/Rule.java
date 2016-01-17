@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import exceptions.SyntaxError;
 import grow.action.Action;
+import grow.action.Util;
 
 /**
  * Represents: a rule in the grow game.
@@ -20,9 +21,9 @@ import grow.action.Action;
 public class Rule {
 
 	/**
-	 * The delimeter used when saving lists
+	 * The delimiter used when saving lists
 	 */
-	public static final String SAVE_DELIMETER = "`";
+	public static final String SAVE_DELIMETER = Character.toString(Util.RESERVED_SEPERATOR);
 
 	/**
 	 * The set of strings this rule matches.

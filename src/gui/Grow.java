@@ -322,6 +322,17 @@ public class Grow extends Application {
 	 *            the arguments.
 	 */
 	public static void main(String[] args) {
+		doMain(args);
+		System.exit(0);
+	}
+
+	/**
+	 * Effect: runs all the main stuff
+	 * 
+	 * @param args
+	 *            the arguments
+	 */
+	private static void doMain(String[] args) {
 		try {
 			Map<String, List<String>> a = processArgs(args, "-t", "--grow-root", "--reset-root", "--set-root", "--help");
 

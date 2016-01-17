@@ -98,7 +98,7 @@ public class Console extends SplitPane {
 	public Console() {
 		view = new WebView();
 		view.getEngine().loadContent("<html> <head> <style> pre { font-family: '" + font.getFamily() + "'; font-size: " + font.getSize()
-				+ "px; display: block; margin-top: 0em; margin-bottom: 0em; margin-left: 0; margin-right: 0; } </style> </head> <body>  <div id='content'> </div> </body> </html>");
+				+ "px; display: block; white-space: pre-wrap; margin-top: 0em; margin-bottom: 0em; margin-left: 0; margin-right: 0; } </style> </head> <body>  <div id='content'> </div> </body> </html>");
 		inputArea = new TextArea();
 		inputArea.setFont(font);
 		inputArea.setStyle("-fx-text-fill: " + toRGBCode(inputColor) + ";");

@@ -104,7 +104,7 @@ public class GrowGame {
 		base.rules()
 				.add(new Rule(
 						Arrays.asList(new Print(
-								"To quit, type \":quit\"\nTo start over again, type \":restart\"\nTo add a rule to this scene, type \":extend\"\nTo remove a rule from this scene, type \":remove\"\nTo change the order of the rules in this scene, type \":reorder\"\nTo change the description for the current scene, type \":description\"\nTo view all the rules for the current scene, type \":view\"\nTo open a different adventure, type \":change story\"\nTo create a new adventure, type \":new\"")),
+								"To quit, type \":quit\"\nTo start over again, type \":restart\"\nTo add a rule to this scene, type \":extend\"\nTo remove a rule from this scene, type \":remove\"\nTo change the order of the rules in this scene, type \":reorder\"\nTo change the description for the current scene, type \":description\"\nTo cancel an edit, type \":cancel\".\nTo view all the rules for the current scene, type \":view\"\nTo open a different adventure, type \":change story\"\nTo create a new adventure, type \":new\"")),
 				"help"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.quitAction()), "quit"));
 		base.rules().add(new Rule(Arrays.asList(new Restart()), "restart"));
@@ -115,6 +115,7 @@ public class GrowGame {
 		base.rules().add(new Rule(Arrays.asList(new Edit()), "edit"));
 		base.rules().add(new Rule(Arrays.asList(new Reorder()), "reorder"));
 		base.rules().add(new Rule(Arrays.asList(new ChangeDescription()), "description"));
+		base.rules().add(new Rule(Arrays.asList(new Print("Nothing to cancel.")), "cancel"));
 
 		base.rules().add(new Rule(Arrays.asList(new View()), "view"));
 

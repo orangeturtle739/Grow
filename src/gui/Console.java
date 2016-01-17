@@ -9,9 +9,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javafx.application.Platform;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.geometry.Orientation;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -24,7 +26,7 @@ import javafx.scene.web.WebView;
  * @author Jacob Glueck
  *
  */
-public class Console extends VBox {
+public class Console extends SplitPane {
 
 	/**
 	 * The color of the text that the user types
@@ -82,7 +84,7 @@ public class Console extends VBox {
 	/**
 	 * The field in which the client types input
 	 */
-	private final TextField inputField;
+	private final TextArea inputArea;
 
 	/**
 	 * An object used to ensure that only one thread writes to the view at the
@@ -97,13 +99,16 @@ public class Console extends VBox {
 		view = new WebView();
 		view.getEngine().loadContent("<html> <head> <style> p { font-family: '" + font.getFamily() + "'; font-size: " + font.getSize()
 				+ "px; display: block; margin-top: 0em; margin-bottom: 0em; margin-left: 0; margin-right: 0; } </style> </head> <body>  <div id='content'> </div> </body> </html>");
-		inputField = new TextField();
-		inputField.setFont(font);
-		inputField.setStyle("-fx-text-fill: " + toRGBCode(inputColor) + ";");
-		getChildren().add(view);
-		VBox.setVgrow(view, Priority.ALWAYS);
-		getChildren().add(inputField);
-		VBox.setVgrow(inputField, Priority.NEVER);
+		inputArea = new TextArea();
+		inputArea.setFont(font);
+		inputArea.setStyle("-fx-text-fill: " + toRGBCode(inputColor) + ";");
+		inputArea.setWrapText(true);
+		getItems().add(view);
+		// VBox.setVgrow(view, Priority.ALWAYS);
+		getItems().add(inputArea);
+		// VBox.setVgrow(inputArea, Priority.NEVER);
+		setOrientation(Orientation.VERTICAL);
+		setDividerPositions(.7, .3);
 
 		current = inputColor;
 
@@ -193,24 +198,29 @@ public class Console extends VBox {
 			}
 		};
 		scanner = new Scanner(input);
-		inputField.setOnAction((e) -> {
-			String text = inputField.getText();
-			// We must print the text before forwarding it to ensure that the
-			// text appears before any response.
-			echoPrint.println(text);
-			for (int x = 0; x < text.length(); x++) {
-				try {
-					inputBuffer.put((byte) text.charAt(x));
-				} catch (Exception e1) {
-					e1.printStackTrace();
+		inputArea.setOnKeyReleased(keyEvent -> {
+			if (keyEvent.getCode() == KeyCode.ENTER) {
+				String text = inputArea.getText();
+				// Get rid of the new line at the end
+				text = text.trim();
+				// We must print the text before forwarding it to ensure that
+				// the text appears before any response.
+				echoPrint.println(text);
+				for (int x = 0; x < text.length(); x++) {
+					try {
+						inputBuffer.put((byte) text.charAt(x));
+					} catch (Exception e11) {
+						e11.printStackTrace();
+					}
 				}
+				try {
+					inputBuffer.put((byte) '\n');
+				} catch (Exception e12) {
+					e12.printStackTrace();
+				}
+				inputArea.clear();
+				keyEvent.consume();
 			}
-			try {
-				inputBuffer.put((byte) '\n');
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
-			inputField.clear();
 		});
 	}
 
@@ -240,8 +250,8 @@ public class Console extends VBox {
 			// Handle multi-line input properly
 			String[] split = str.split("\\R");
 			for (String line : split) {
-				inputField.setText(line);
-				inputField.getOnAction().handle(null);
+				inputArea.setText(line);
+				inputArea.getOnKeyReleased().handle(new KeyEvent(null, null, null, null, null, KeyCode.ENTER, false, false, false, false));
 			}
 		});
 	}

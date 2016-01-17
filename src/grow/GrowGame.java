@@ -130,22 +130,26 @@ public class GrowGame {
 	 *
 	 * @param imageDisplayer
 	 *            the image displayer used to display the initial image
+	 * @param u
+	 *            the status updater, used to signal scene or adventure changes
 	 */
-	public void init(Consumer<Image> imageDisplayer) {
+	public void init(Consumer<Image> imageDisplayer, StatusUpdater u) {
 		if (world != null) {
 			throw new IllegalStateException();
 		}
 		world = saveManager.init(input, output);
 		imageDisplayer.accept(world.current().image());
+		u.update(world.name(), world.current().name());
 	}
 
 	/**
 	 * Does not display images.
 	 *
-	 * @see GrowGame#init(Consumer)
+	 * @see GrowGame#init(Consumer, StatusUpdater)
 	 */
 	public void init() {
 		init((i) -> {
+		} , (a, s) -> {
 		});
 	}
 
@@ -153,16 +157,18 @@ public class GrowGame {
 	 * Effect: executes a single turn using {@code line} as the initial input,
 	 * and using the input stream to get the rest of the input. If the turn
 	 * results in the termination of the game, this method returns false, and
-	 * resets the game so that another call to {@link #init(Consumer)} will
-	 * restart it.
+	 * resets the game so that another call to GrowGame#init(Consumer,
+	 * StatusUpdater) will restart it.
 	 *
 	 * @param line
 	 *            the line to use as the initial input
 	 * @param imageDisplayer
 	 *            the image displayer
+	 * @param u
+	 *            the status updater, used to signal scene or adventure changes
 	 * @return true if the game is still going, false if the game is over
 	 */
-	public boolean doTurn(String line, Consumer<Image> imageDisplayer) {
+	public boolean doTurn(String line, Consumer<Image> imageDisplayer, StatusUpdater u) {
 		List<Action> actions = null;
 		// Check to see if it is a command
 		if (line.startsWith(":")) {
@@ -187,6 +193,7 @@ public class GrowGame {
 					return false;
 				} else {
 					imageDisplayer.accept(next.image());
+					u.update(world.name(), world.current().name());
 				}
 			}
 		}
@@ -199,10 +206,11 @@ public class GrowGame {
 	 * @param line
 	 *            the initial input
 	 * @return true if the game is still running
-	 * @see GrowGame#doTurn(String, Consumer)
+	 * @see GrowGame#doTurn(String, Consumer, StatusUpdater)
 	 */
 	public boolean doTurn(String line) {
 		return doTurn(line, (i) -> {
+		} , (a, s) -> {
 		});
 	}
 
@@ -212,6 +220,7 @@ public class GrowGame {
 	 */
 	public void play() {
 		play((f) -> {
+		} , (a, s) -> {
 		});
 	}
 
@@ -221,10 +230,12 @@ public class GrowGame {
 	 *
 	 * @param imageDisplayer
 	 *            the consumer which consumes files and displays the images.
+	 * @param u
+	 *            the status updater, used to signal scene or adventure changes
 	 */
-	public void play(Consumer<Image> imageDisplayer) {
+	public void play(Consumer<Image> imageDisplayer, StatusUpdater u) {
 		// Keep doing turns until the game is over
-		while (doTurn(input.nextLine(), imageDisplayer)) {
+		while (doTurn(input.nextLine(), imageDisplayer, u)) {
 			;
 		}
 	}

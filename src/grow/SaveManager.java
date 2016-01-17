@@ -468,11 +468,11 @@ public class SaveManager {
 				int v = 1;
 				// Only worry about version numbers if the base name exists
 				if (fileNames.contains(genName + ".zip")) {
-					Matcher m = Pattern.compile(".*_v\\d+$").matcher(baseName);
+					Matcher m = Pattern.compile(".*_v(\\d+)$").matcher(baseName);
 					if (m.matches()) {
 						v = Integer.parseInt(m.group(1));
 						// Remove the version number
-						baseName = baseName.substring(0, baseName.length() - m.group().length());
+						baseName = baseName.substring(0, baseName.length() - m.group(1).length() - "_v".length());
 					}
 				}
 				while (fileNames.contains(genName + ".zip")) {

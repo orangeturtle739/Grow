@@ -24,17 +24,24 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import grow.GrowGame;
+import grow.StatusUpdater;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.ToolBar;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -43,8 +50,11 @@ import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
@@ -71,14 +81,41 @@ public class Grow extends Application {
 	 */
 	private Console c;
 
+	/**
+	 * The label for the current adventure name
+	 */
+	private Label adventureName;
+	/**
+	 * The label for the current scene
+	 */
+	private Label adventureScene;
+	/**
+	 * The label for the drag and drop
+	 */
+	private Label dragAndDrop;
+
 	@Override
 	public void start(Stage primaryStage) {
 		c = new Console();
 		image = new HBox();
+		// StackPane consoleHolder = new StackPane(c);
 		SplitPane split = new SplitPane(image, c);
 		split.setOrientation(Orientation.VERTICAL);
 		split.setDividerPositions(.7, .3);
 		BorderPane mainPane = new BorderPane(split);
+		GridPane bottomGrid = new GridPane();
+		adventureName = new Label();
+		adventureScene = new Label();
+		dragAndDrop = new Label();
+		dragAndDrop.setEffect(new DropShadow());
+		bottomGrid.add(new ToolBar(labeledLabel("Adventure", adventureName)), 0, 0);
+		bottomGrid.add(new ToolBar(labeledLabel("Scene", adventureScene)), 1, 0);
+		bottomGrid.add(new ToolBar(labeledLabel("Share", dragAndDrop)), 2, 0);
+		ColumnConstraints cons = new ColumnConstraints(0, 100, Double.MAX_VALUE);
+		cons.setHgrow(Priority.ALWAYS);
+		bottomGrid.getColumnConstraints().addAll(cons, cons, cons);
+
+		mainPane.setBottom(bottomGrid);
 		primaryStage.setScene(new Scene(mainPane, 1000, 1000));
 
 		// Find the grow root directory
@@ -182,15 +219,15 @@ public class Grow extends Application {
 		});
 
 		// Handle drag and drop adventures
-		// c.setOnDragDetected((e) -> {
-		// if (gameThread.inject(":save")) {
-		// Dragboard d = c.startDragAndDrop(TransferMode.COPY);
-		// ClipboardContent content = new ClipboardContent();
-		// content.putFiles(Arrays.asList(g.adventureFile()));
-		// d.setContent(content);
-		// e.consume();
-		// }
-		// });
+		dragAndDrop.setOnDragDetected((e) -> {
+			if (gameThread.inject(":save")) {
+				Dragboard d = c.startDragAndDrop(TransferMode.COPY);
+				ClipboardContent content = new ClipboardContent();
+				content.putFiles(Arrays.asList(g.adventureFile()));
+				d.setContent(content);
+				e.consume();
+			}
+		});
 		c.setOnDragOver(event -> {
 			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
 				event.acceptTransferModes(TransferMode.COPY);
@@ -245,6 +282,25 @@ public class Grow extends Application {
 	}
 
 	/**
+	 * Creates: a label with a label to its left.
+	 *
+	 * @param text
+	 *            the text in the label. A {@code ": "} will be appended.
+	 * @param label
+	 *            the label to label.
+	 * @return the labeled label.
+	 */
+	private static Node labeledLabel(String text, Label label) {
+		HBox h = new HBox();
+		Label l = new Label(text + ": ");
+		h.getChildren().add(l);
+		HBox.setHgrow(l, Priority.NEVER);
+		h.getChildren().add(label);
+		HBox.setHgrow(label, Priority.ALWAYS);
+		return h;
+	}
+
+	/**
 	 * Effect: sets the background image of a region to be white with a
 	 * specified image on top of it.
 	 *
@@ -253,7 +309,7 @@ public class Grow extends Application {
 	 * @param i
 	 *            the image
 	 */
-	private void setBackground(Region n, Image i) {
+	private static void setBackground(Region n, Image i) {
 		BackgroundImage back = new BackgroundImage(i, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, new BackgroundSize(100, 100, true, true, true, false));
 		Platform.runLater(() -> n.setBackground(new Background(new BackgroundFill[] { new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY) }, new BackgroundImage[] { back })));
 	}
@@ -507,7 +563,14 @@ public class Grow extends Application {
 				}
 				setBackground(image, new Image(Grow.class.getResourceAsStream("default.jpeg")));
 			};
-			g.init(displayer);
+			StatusUpdater u = (a, s) -> {
+				Platform.runLater(() -> {
+					adventureName.setText(a);
+					adventureScene.setText(s);
+					dragAndDrop.setText(a + ".zip");
+				});
+			};
+			g.init(displayer, u);
 			ExecutorService reader = Executors.newFixedThreadPool(1, r -> {
 				Thread t = new Thread(r);
 				t.setDaemon(true);
@@ -551,7 +614,7 @@ public class Grow extends Application {
 				synchronized (injection) {
 					line = injection.get() == null ? line : injection.get();
 				}
-			} while (g.doTurn(line, displayer));
+			} while (g.doTurn(line, displayer, u));
 			Platform.exit();
 		}
 

@@ -64,6 +64,9 @@
 		<mkdir dir="doc" />
 		<javadoc sourcepath="src" destdir="doc" />
 	</target>
+	<target depends="doc" description="build javadoc jar" name="package-docs">
+		<jar compress="true" destfile="build/javadoc.jar" basedir="doc" />
+	</target>
 
 	<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="lib/appbundler-1.0.jar" />
 	<property environment="env" />

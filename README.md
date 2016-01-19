@@ -25,6 +25,7 @@ While this version of the game is backwards compatible with the version describe
 ## Game Control
 ### Text Commands
 To enter a command, prefix it with `:`.
+
 1. `quit`: exits the game
 2. `restart`: sets your score to 0 and takes you back to the first scene of the adventure
 3. `extend`: adds a rule to the current scene

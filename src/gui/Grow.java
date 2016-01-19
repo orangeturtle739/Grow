@@ -98,8 +98,10 @@ public class Grow extends Application {
 	public void start(Stage primaryStage) {
 		c = new Console();
 		image = new HBox();
-		// StackPane consoleHolder = new StackPane(c);
-		SplitPane split = new SplitPane(image, c);
+		SoundPlayer p = new SoundPlayer();
+		SplitPane mediaPane = new SplitPane(image, p);
+		mediaPane.setOrientation(Orientation.VERTICAL);
+		SplitPane split = new SplitPane(mediaPane, c);
 		split.setOrientation(Orientation.VERTICAL);
 		split.setDividerPositions(.7, .3);
 		BorderPane mainPane = new BorderPane(split);
@@ -328,7 +330,7 @@ public class Grow extends Application {
 
 	/**
 	 * Effect: runs all the main stuff
-	 * 
+	 *
 	 * @param args
 	 *            the arguments
 	 */

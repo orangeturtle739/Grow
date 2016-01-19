@@ -1,5 +1,6 @@
 package gui;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -16,9 +17,6 @@ import org.w3c.dom.Document;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.text.Font;
-import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
 /**
@@ -31,52 +29,18 @@ public class Test extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		// Console c = new Console();
-		String f = Font.loadFont(Console.class.getResource("UbuntuMono-R.ttf").toExternalForm(), 18).getFamily();
-		System.out.println(f);
-		WebView w = new WebView();
-		w.getEngine().loadContent(
-				"<html> <head> <style> p { font-family: \"Ubuntu Mono\"; font-size: 18pt; display: block; margin-top: 0em; margin-bottom: 0em; margin-left: 0; margin-right: 0; color: #00FF00; } </style> </head> <body>  <div id='content'> </div> </body> </html>");
-		Platform.runLater(() -> w.getEngine()
-				.executeScript("var para = document.createElement('p'); para.appendChild(document.createTextNode('World!')); document.getElementById('content').appendChild(para);"));
-		Platform.runLater(() -> w.getEngine().executeScript(
-				"var para = document.createElement('p'); para.appendChild(document.createTextNode('')); para.style.color = '#FF0000'; document.getElementById('content').appendChild(para);"));
-		Platform.runLater(() -> w.getEngine().executeScript("document.getElementById('content').lastChild.appendChild(document.createTextNode('+Bob'));"));
-		new Thread(() -> {
-			try {
-				Thread.sleep(2000);
-			} catch (Exception e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			Platform.runLater(() -> {
-				try {
-					printDocument(w.getEngine().getDocument(), System.out);
-				} catch (Exception e1) {
-				}
-			});
-		}).start();
-		primaryStage.setScene(new Scene(new BorderPane(w), 600, 600));
-		primaryStage.show();
-		// Thread t = new Thread(() -> {
-		// while (true) {
-		// c.output().println("Hi! " + System.currentTimeMillis());
-		// try {
-		// Thread.sleep(1000);
-		// } catch (Exception e1) {
-		// e1.printStackTrace();
-		// }
-		// }
-		// });
-		// t.setDaemon(true);
-		// t.start();
-
 		primaryStage.setOnCloseRequest(e -> Platform.exit());
+		SoundPlayer p = new SoundPlayer();
+		p.load(new File("/Users/jacob/Music/iTunes/iTunes Music/Music/Alexandre Desplat/The Imitation Game (Original Motion Picture S/06 Mission.mp3").toURI(), true);
+		p.play();
+		p.setVolume(1);
+		primaryStage.setScene(new Scene(p, 600, 600));
+		primaryStage.show();
 	}
 
 	/**
 	 * Fun!
-	 * 
+	 *
 	 * @param doc
 	 *            fun
 	 * @param out

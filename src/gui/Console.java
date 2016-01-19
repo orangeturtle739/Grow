@@ -103,12 +103,14 @@ public class Console extends SplitPane {
 		inputArea.setFont(font);
 		inputArea.setStyle("-fx-text-fill: " + toRGBCode(inputColor) + ";");
 		inputArea.setWrapText(true);
+		inputArea.setMaxHeight(USE_PREF_SIZE);
+		inputArea.setPrefHeight(150);
 		getItems().add(view);
 		// VBox.setVgrow(view, Priority.ALWAYS);
 		getItems().add(inputArea);
 		// VBox.setVgrow(inputArea, Priority.NEVER);
 		setOrientation(Orientation.VERTICAL);
-		setDividerPositions(.7, .3);
+		// setDividerPositions(.7, .3);
 
 		current = inputColor;
 

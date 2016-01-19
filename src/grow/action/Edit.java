@@ -62,7 +62,7 @@ public class Edit extends Action {
 	 *             if the user cancels the edit
 	 */
 	private static void editPatterns(Scene current, Game world, Scanner input, PrintStream output, int index) throws CanceledException {
-		output.println("Which patterns would you like to remove? Enter a list of space-seperated integers.");
+		output.println("Which patterns would you like to remove? Enter a list of space-separated integers.");
 		Util.printNumberedList("", ".", 0, 5, output, world.current().rules().get(index).patterns());
 		Set<Integer> toRemove = new HashSet<>(Util.readInts(output, input, "Bad list!", 1, world.current().rules().get(index).patterns().size()));
 		int count = 1;
@@ -94,7 +94,7 @@ public class Edit extends Action {
 	 *             if the user cancels the edit
 	 */
 	private static void editActions(Scene current, Game world, Scanner input, PrintStream output, int index) throws CanceledException {
-		output.println("Which actions would you like to remove? Enter a list of space-seperated integers.");
+		output.println("Which actions would you like to remove? Enter a list of space-separated integers.");
 		Util.printNumberedList("", ".", 0, 5, output, world.current().rules().get(index).actions());
 		Set<Integer> toRemove = new HashSet<>(Util.readInts(output, input, "Bad list!", 1, world.current().rules().get(index).actions().size()));
 		int count = 1;
@@ -111,7 +111,7 @@ public class Edit extends Action {
 
 	/**
 	 * Allows the user to change the order of the actions
-	 * 
+	 *
 	 * @param current
 	 *            the current scene
 	 * @param world
@@ -126,7 +126,7 @@ public class Edit extends Action {
 	 *             if the user cancels the edit
 	 */
 	private static void reorderActions(Scene current, Game world, Scanner input, PrintStream output, int index) throws CanceledException {
-		output.println("Enter the new action order as a list of space-seperated integers.");
+		output.println("Enter the new action order as a list of space-separated integers.");
 		Util.printNumberedList("", ".", 0, 5, output, world.current().rules().get(index).actions());
 		List<Integer> order = Util.readInts(output, input, "Bad list!", 1, world.current().rules().get(index).actions().size(), world.current().rules().get(index).actions().size());
 		ArrayList<Action> newActions = new ArrayList<>(world.current().rules().get(index).actions().size());

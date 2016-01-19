@@ -24,16 +24,18 @@ While this version of the game is backwards compatible with the version describe
 
 ## Game Control
 ### Text Commands
-1. `:quit`: exits the game
-2. `:restart`: sets your score to 0 and takes you back to the first scene of the adventure
-3. `:extend`: adds a rule to the current scene
-4. `:remove`: removes a rule from the current scene
-5. `:reorder`: reorders the rules of the current scene.
-6. `:description`: changes the description of the current scene
-7. `:cancel`: cancels the current edit
-8. `:view`: displays all the rules for the current scene
-9. `:change story`: changes the story
-10. `:new`: creates a new story
+To enter a command, prefix it with `:`.
+1. `quit`: exits the game
+2. `restart`: sets your score to 0 and takes you back to the first scene of the adventure
+3. `extend`: adds a rule to the current scene
+4. `remove`: removes a rule from the current scene
+5. `edit`: edits a rule from the current scene
+5. `reorder`: reorders the rules of the current scene.
+6. `description`: changes the description of the current scene
+7. `cancel`: cancels the current edit
+8. `view`: displays all the rules for the current scene
+9. `change story`: changes the story
+10. `new`: creates a new story
 
 ### Graphical Commands
 1. Drag and drop JPEG image files onto the image to set the image for the current scene.

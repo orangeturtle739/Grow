@@ -2,13 +2,13 @@ package grow;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.function.Consumer;
 
 import exceptions.NoSuchScene;
 import grow.action.Action;
@@ -127,28 +127,28 @@ public class GrowGame {
 	 * Initializes the game. Throws an {@link IllegalStateException} if the game
 	 * has already been initialized.
 	 *
-	 * @param imageDisplayer
-	 *            the image displayer used to display the initial image
+	 * @param processor
+	 *            the processor used to display the initial image, and the sound
 	 * @param u
 	 *            the status updater, used to signal scene or adventure changes
 	 */
-	public void init(Consumer<Image> imageDisplayer, StatusUpdater u) {
+	public void init(MediaProcessor processor, StatusUpdater u) {
 		if (world != null) {
 			throw new IllegalStateException();
 		}
 		world = saveManager.init(input, output);
-		imageDisplayer.accept(world.current().image());
+		processor.process(world.current().image());
+		processor.process(world.current().sound());
 		u.update(world.name(), world.current().name());
 	}
 
 	/**
 	 * Does not display images.
 	 *
-	 * @see GrowGame#init(Consumer, StatusUpdater)
+	 * @see GrowGame#init(MediaProcessor, StatusUpdater)
 	 */
 	public void init() {
-		init((i) -> {
-		} , (a, s) -> {
+		init(MediaProcessor.EMPTY, (a, s) -> {
 		});
 	}
 
@@ -156,18 +156,18 @@ public class GrowGame {
 	 * Effect: executes a single turn using {@code line} as the initial input,
 	 * and using the input stream to get the rest of the input. If the turn
 	 * results in the termination of the game, this method returns false, and
-	 * resets the game so that another call to GrowGame#init(Consumer,
+	 * resets the game so that another call to GrowGame#init(MediaProcessor,
 	 * StatusUpdater) will restart it.
 	 *
 	 * @param line
 	 *            the line to use as the initial input
-	 * @param imageDisplayer
-	 *            the image displayer
+	 * @param p
+	 *            the processor which displays images and plays sound
 	 * @param u
 	 *            the status updater, used to signal scene or adventure changes
 	 * @return true if the game is still going, false if the game is over
 	 */
-	public boolean doTurn(String line, Consumer<Image> imageDisplayer, StatusUpdater u) {
+	public boolean doTurn(String line, MediaProcessor p, StatusUpdater u) {
 		List<Action> actions = null;
 		// Check to see if it is a command
 		if (line.startsWith(":")) {
@@ -191,7 +191,8 @@ public class GrowGame {
 					world = null;
 					return false;
 				} else {
-					imageDisplayer.accept(next.image());
+					p.process(next.image());
+					p.process(next.sound());
 					u.update(world.name(), world.current().name());
 				}
 			}
@@ -205,11 +206,10 @@ public class GrowGame {
 	 * @param line
 	 *            the initial input
 	 * @return true if the game is still running
-	 * @see GrowGame#doTurn(String, Consumer, StatusUpdater)
+	 * @see GrowGame#doTurn(String, MediaProcessor, StatusUpdater)
 	 */
 	public boolean doTurn(String line) {
-		return doTurn(line, (i) -> {
-		} , (a, s) -> {
+		return doTurn(line, MediaProcessor.EMPTY, (a, s) -> {
 		});
 	}
 
@@ -218,8 +218,7 @@ public class GrowGame {
 	 * until complete.
 	 */
 	public void play() {
-		play((f) -> {
-		} , (a, s) -> {
+		play(MediaProcessor.EMPTY, (a, s) -> {
 		});
 	}
 
@@ -227,14 +226,14 @@ public class GrowGame {
 	 * Starts a new game of grow that does display images using the specified
 	 * image consumer. Does not return until complete.
 	 *
-	 * @param imageDisplayer
-	 *            the consumer which consumes files and displays the images.
+	 * @param p
+	 *            the processor which displays images and plays sound
 	 * @param u
 	 *            the status updater, used to signal scene or adventure changes
 	 */
-	public void play(Consumer<Image> imageDisplayer, StatusUpdater u) {
+	public void play(MediaProcessor p, StatusUpdater u) {
 		// Keep doing turns until the game is over
-		while (doTurn(input.nextLine(), imageDisplayer, u)) {
+		while (doTurn(input.nextLine(), p, u)) {
 			;
 		}
 	}
@@ -251,6 +250,20 @@ public class GrowGame {
 			return false;
 		}
 		return saveManager.saveImage(world.current(), world, i);
+	}
+
+	/**
+	 * Effect: tries to save and load the sound into the game.
+	 *
+	 * @param i
+	 *            the sound
+	 * @return true if it worked, false otherwise.
+	 */
+	public boolean saveSound(URI i) {
+		if (world == null) {
+			return false;
+		}
+		return saveManager.saveSound(world.current(), world, i);
 	}
 
 	/**

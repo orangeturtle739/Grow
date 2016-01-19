@@ -123,6 +123,17 @@ public class ZipLocker {
 	}
 
 	/**
+	 * Constructs a URI to a specified file. The file may or may not exist.
+	 * 
+	 * @param more
+	 *            the path to the file
+	 * @return the URI
+	 */
+	public URI getURI(String... more) {
+		return fs.getPath(rootFileName(), more).toUri();
+	}
+
+	/**
 	 * Effect: deletes a file from the ZipLocker, if it exists. Not sure what
 	 * happens if the file does not exist.
 	 *

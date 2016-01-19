@@ -1,6 +1,7 @@
 package grow;
 
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,9 +32,15 @@ public class Scene {
 	private final List<Rule> rules;
 
 	/**
-	 * The image file for this scene
+	 * The image file for this scene. This is volatile because many threads may
+	 * use it.
 	 */
 	private volatile Image image;
+	/**
+	 * The URI for the sound for this scene. This is volatile because many
+	 * threads may use it.
+	 */
+	private volatile URI sound;
 
 	/**
 	 * Creates: a new scene with no actions with the specified name and an empty
@@ -82,6 +89,23 @@ public class Scene {
 	 */
 	public Image image() {
 		return image;
+	}
+
+	/**
+	 * Effect: sets the sound URI to the specified URI.
+	 *
+	 * @param uri
+	 *            the uri
+	 */
+	public void setSound(URI uri) {
+		sound = uri;
+	}
+
+	/**
+	 * @return the URI for the sound file, or null if there is not one.
+	 */
+	public URI sound() {
+		return sound;
 	}
 
 	/**

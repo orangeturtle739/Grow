@@ -16,22 +16,67 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
+/**
+ * Represents: a view that plays sound, has a volume control, a progress bar,
+ * and a play/pause button.
+ *
+ * @author Jacob Glueck
+ */
 public class SoundPlayer extends HBox {
 
+	/**
+	 * The string which in Font Awesome is a play button
+	 */
 	private static final String PLAY = "\uf04b";
+	/**
+	 * The string which in Font Awesome is a pause button
+	 */
 	private static final String PAUSE = "\uf04c";
+	/**
+	 * Font Awesome, which uses symbols for many different characters
+	 */
 	private static final Font fontAwesome = Font.loadFont(SoundPlayer.class.getResourceAsStream("fontawesome-webfont.ttf"), 20);
+	/**
+	 * The width of a big thing.
+	 */
 	private static final double BIG_WIDTH = 90;
+	/**
+	 * The width of a small thing.
+	 */
 	private static final double MEDIUM_WIDTH = 50;
+	/**
+	 * The width of a small thing
+	 */
 	private static final double SMALL_WIDTH = 30;
 
+	/**
+	 * The player which plays the media
+	 */
 	private MediaPlayer player;
+	/**
+	 * The play/pause button
+	 */
 	private final ToggleButton play;
+	/**
+	 * The progress bar
+	 */
 	private final ProgressBar progress;
+	/**
+	 * The volume slider
+	 */
 	private final Slider volume;
+	/**
+	 * The label which shows how much time has passed
+	 */
 	private final Label passed;
+	/**
+	 * The label which shows how much time is remaining
+	 */
 	private final Label remaining;
 
+	/**
+	 * Creates: a new sound player
+	 */
 	public SoundPlayer() {
 		play = new ToggleButton(PLAY);
 		play.selectedProperty().addListener((s, o, n) -> {
@@ -82,9 +127,17 @@ public class SoundPlayer extends HBox {
 		setSpacing(10);
 		setMaxHeight(USE_PREF_SIZE);
 		setPadding(new Insets(10));
-		setDisable(true);
+		clear();
 	}
 
+	/**
+	 * Effect: loads the specified sound file
+	 *
+	 * @param uri
+	 *            the sound file
+	 * @param loop
+	 *            true if the sound should loop
+	 */
 	public void load(URI uri, boolean loop) {
 		clear();
 		player = new MediaPlayer(new Media(uri.toString()));
@@ -99,42 +152,83 @@ public class SoundPlayer extends HBox {
 			});
 		});
 		player.volumeProperty().bind(volume.valueProperty());
-		setDisable(false);
+		play.setDisable(false);
 	}
 
+	/**
+	 * Effect: clears the sound file
+	 */
 	public void clear() {
 		if (player != null) {
 			pause();
 			player.dispose();
 			player = null;
-			setDisable(true);
 		}
+		play.setDisable(true);
+		progress.setProgress(0);
+		passed.setText("00:00");
+		remaining.setText("00:00");
 	}
 
+	/**
+	 * Effect: sets whether the currently playing sound should loop.<br>
+	 * Requires: sound must be loaded.
+	 *
+	 * @param loop
+	 *            true if the sound should loop
+	 */
 	public void setLoop(boolean loop) {
 		player.setCycleCount(loop ? MediaPlayer.INDEFINITE : 1);
 	}
 
+	/**
+	 * Effect: sets the volume of the sound.<br>
+	 * Requires: sound must be loaded.
+	 *
+	 * @param v
+	 *            the volume. In the range [0, 1].
+	 */
 	public void setVolume(double v) {
 		volume.setValue(v);
 	}
 
+	/**
+	 * Effect: pauses the sound.<br>
+	 * Requires: sound must be loaded.
+	 */
 	public void pause() {
 		Platform.runLater(() -> play.setSelected(false));
 	}
 
+	/**
+	 * Effect: plays the sound<br>
+	 * Requires: sound must be loaded.
+	 */
 	public void play() {
 		Platform.runLater(() -> play.setSelected(true));
 	}
 
+	/**
+	 * @return the length of the sound file
+	 */
 	public Duration length() {
 		return player.getCycleDuration();
 	}
 
+	/**
+	 * @return the current running time
+	 */
 	public Duration time() {
 		return player.getCurrentTime();
 	}
 
+	/**
+	 * Effect: makes the player jump to the specified time in the file.<br>
+	 * Requires: sound must be loaded.
+	 * 
+	 * @param d
+	 *            the time
+	 */
 	public void seek(Duration d) {
 		player.seek(d);
 	}

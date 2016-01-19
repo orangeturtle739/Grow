@@ -3,6 +3,7 @@ package gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,11 +20,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import grow.GrowGame;
+import grow.MediaProcessor;
 import grow.StatusUpdater;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -73,6 +74,10 @@ public class Grow extends Application {
 	 */
 	private Region image;
 	/**
+	 * The sound player
+	 */
+	private SoundPlayer player;
+	/**
 	 * The game
 	 */
 	private GrowGame g;
@@ -98,8 +103,8 @@ public class Grow extends Application {
 	public void start(Stage primaryStage) {
 		c = new Console();
 		image = new HBox();
-		SoundPlayer p = new SoundPlayer();
-		SplitPane mediaPane = new SplitPane(image, p);
+		player = new SoundPlayer();
+		SplitPane mediaPane = new SplitPane(image, player);
 		mediaPane.setOrientation(Orientation.VERTICAL);
 		SplitPane split = new SplitPane(mediaPane, c);
 		split.setOrientation(Orientation.VERTICAL);
@@ -273,6 +278,51 @@ public class Grow extends Application {
 				} else {
 					event.setDropCompleted(false);
 				}
+			}
+
+			event.consume();
+		});
+
+		// Handle drag and drop music
+		player.setOnDragOver(event -> {
+			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
+				event.acceptTransferModes(TransferMode.COPY);
+			}
+			event.consume();
+		});
+		player.setOnDragEntered(event -> {
+			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
+				c.setEffect(new Glow());
+			}
+			event.consume();
+		});
+		player.setOnDragExited(event -> {
+			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
+				c.setEffect(null);
+			}
+			event.consume();
+		});
+		player.setOnDragDropped(event -> {
+			File newSound = null;
+			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
+				if (event.getDragboard().hasFiles()) {
+					List<File> files = event.getDragboard().getFiles();
+					if (files.size() == 1) {
+						try {
+							newSound = files.get(0);
+						} catch (Exception e1) {
+							newSound = null;
+						}
+					}
+				}
+			}
+
+			if (newSound != null && g.saveSound(newSound.toURI())) {
+				event.setDropCompleted(true);
+				player.load(newSound.toURI(), true);
+				player.play();
+			} else {
+				event.setDropCompleted(false);
 			}
 
 			event.consume();
@@ -565,16 +615,34 @@ public class Grow extends Application {
 
 		@Override
 		public void run() {
-			Consumer<Image> displayer = (f) -> {
-				if (f != null) {
-					try {
-						setBackground(image, f);
-						return;
-					} catch (Exception e1) {
-						System.out.println("Image not found: " + f);
-					}
+			MediaProcessor processor = new MediaProcessor() {
+
+				@Override
+				public void process(URI sound) {
+					Platform.runLater(() -> {
+						if (sound != null) {
+							player.load(sound, true);
+							player.play();
+						} else {
+							player.clear();
+						}
+					});
 				}
-				setBackground(image, new Image(Grow.class.getResourceAsStream("default.jpeg")));
+
+				@Override
+				public void process(Image f) {
+					Platform.runLater(() -> {
+						if (f != null) {
+							try {
+								setBackground(image, f);
+								return;
+							} catch (Exception e1) {
+								System.out.println("Image not found: " + f);
+							}
+						}
+						setBackground(image, new Image(Grow.class.getResourceAsStream("default.jpeg")));
+					});
+				}
 			};
 			StatusUpdater u = (a, s) -> {
 				Platform.runLater(() -> {
@@ -583,7 +651,7 @@ public class Grow extends Application {
 					dragAndDrop.setText(a + ".zip");
 				});
 			};
-			g.init(displayer, u);
+			g.init(processor, u);
 			ExecutorService reader = Executors.newFixedThreadPool(1, r -> {
 				Thread t = new Thread(r);
 				t.setDaemon(true);
@@ -627,7 +695,7 @@ public class Grow extends Application {
 				synchronized (injection) {
 					line = injection.get() == null ? line : injection.get();
 				}
-			} while (g.doTurn(line, displayer, u));
+			} while (g.doTurn(line, processor, u));
 			Platform.exit();
 		}
 

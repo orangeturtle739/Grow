@@ -9,8 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +43,11 @@ import util.ZipLocker;
  *
  */
 public class SaveManager {
+
+	/**
+	 * The supported sound file extensions.
+	 */
+	public static final Set<String> SOUND_FILES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("mp3", "wav", "aac")));
 
 	/**
 	 * The name of the file in which the last adventure playing is stored.
@@ -91,7 +102,7 @@ public class SaveManager {
 	 */
 	public Game init(Scanner input, PrintStream output) {
 		Game result = initGame(input, output);
-		linkImages(result);
+		linkMedia(result);
 		new Go(result.current().name()).act(result.current(), result, input, output);
 		return result;
 	}
@@ -175,6 +186,55 @@ public class SaveManager {
 				zip.close();
 			}
 		};
+	}
+
+	/**
+	 * Gets the URI to a sound file.
+	 *
+	 * @param adventureName
+	 *            the adventure name
+	 * @param fileName
+	 *            the file name
+	 * @return the URI
+	 * @throws IOException
+	 *             if there is a problem
+	 */
+	private URI readSound(String adventureName, String fileName) throws IOException {
+		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
+		URI result = zip.getURI(fileName);
+		zip.close();
+		return result;
+	}
+
+	/**
+	 * Effect: searches in the adventure ZIP file for files with the specified
+	 * prefix and one of the specified extensions. If a file with a prefix and
+	 * one of the extensions is found, the extension is returned. Otherwise, a
+	 * no such file exception is thrown.
+	 *
+	 * @param adventureName
+	 *            the name of the adventure
+	 * @param filePrefix
+	 *            the prefix of the file
+	 * @param extensions
+	 *            the possible extensions
+	 * @return the extension
+	 * @throws NoSuchFileException
+	 *             if no such file exists
+	 */
+	private String findAdventureFile(String adventureName, String filePrefix, Collection<String> extensions) throws NoSuchFileException {
+		for (String ext : extensions) {
+			try {
+				String name = filePrefix + "." + ext;
+				// Make sure to close the stream
+				readImage(adventureName, name).close();
+				// If we get here, it exists.
+				return ext;
+			} catch (IOException e) {
+				// Ignore it, this file did not exist
+			}
+		}
+		throw new NoSuchFileException(filePrefix + extensions.toString());
 	}
 
 	// /**
@@ -353,7 +413,7 @@ public class SaveManager {
 
 				// Look for any associated images
 				// world.
-				linkImages(world);
+				linkMedia(world);
 				return new Go(current.name()).act(current, world, input, output);
 			}
 		};
@@ -389,7 +449,7 @@ public class SaveManager {
 	 *            the game
 	 * @param i
 	 *            the image
-	 * @return true if the save succedded, false otherwise.
+	 * @return true if the save succeeded, false otherwise.
 	 */
 	public boolean saveImage(Scene s, Game g, Image i) {
 		try {
@@ -415,6 +475,73 @@ public class SaveManager {
 			e.printStackTrace();
 		}
 		return true;
+	}
+
+	/**
+	 * Effect: searches for sounds for all the scenes in the game and links them
+	 * to the scenes in the game.
+	 *
+	 * @param g
+	 *            the game
+	 */
+	private void linkSounds(Game g) {
+		Map<String, Scene> scenes = g.scenes();
+		for (String s : scenes.keySet()) {
+			try {
+				// Throws a no such file exception if there is no image.
+				scenes.get(s).setSound(readSound(g.name(), s + "." + findAdventureFile(g.name(), s, SOUND_FILES)));
+			} catch (IOException e) {
+			}
+		}
+	}
+
+	/**
+	 * Effect: saves an image so that it is associated with the specified scene
+	 * in the game.
+	 *
+	 * @param s
+	 *            the scene
+	 * @param g
+	 *            the game
+	 * @param i
+	 *            the image
+	 * @return true if the save succeeded, false otherwise.
+	 */
+	public boolean saveSound(Scene s, Game g, URI i) {
+		File f = new File(i);
+		int eIndex = f.getName().lastIndexOf(".");
+		if (eIndex == -1) {
+			return false;
+		}
+		String extension = f.getName().substring(eIndex + 1, f.getName().length());
+		if (!SOUND_FILES.contains(extension)) {
+			return false;
+		}
+		try {
+			OutputStream out = writeImage(g.name(), s.name() + "." + extension);
+			Files.copy(Paths.get(i), out);
+			out.close();
+		} catch (IOException e) {
+			return false;
+		}
+
+		try {
+			s.setSound(readSound(g.name(), s + "." + findAdventureFile(g.name(), s.name(), SOUND_FILES)));
+		} catch (IOException e) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Links the images and the sounds
+	 *
+	 * @param g
+	 *            the game
+	 */
+	private void linkMedia(Game g) {
+		linkImages(g);
+		linkSounds(g);
 	}
 
 	/**
@@ -537,7 +664,7 @@ public class SaveManager {
 					current = new Read(readAdventureState(newAdventureName), readAdventure(newAdventureName)).act(current, world, input, output);
 					output.println("Imported adventure!");
 					// Link the images
-					linkImages(world);
+					linkMedia(world);
 					// Change the name
 					world.setName(newAdventureName);
 					return new Go(current.name()).act(current, world, input, output);

@@ -3,7 +3,7 @@ Grow is a text-based adventure game which can be modified during play. It was in
 
 While this version of the game is backwards compatible with the version described in the original article, it adds several new features to enrich the experience:
 
-1. A GUI which displays the text-based game, as well as an optional image for each scene. The game can be played in a text only mode by running it with the `-t` flag.
+1. A GUI which displays the text-based game, as well as an optional image and soundtrack for each scene. The game can be played in a text only mode by running it with the `-t` flag.
 2. A drag and drop interface for importing images to scenes.
 3. A drag and drop interface for exporting and importing adventures, which are stored in ZIP files.
 2. More commands which allow for easier editing of the adventure.
@@ -40,5 +40,6 @@ To enter a command, prefix it with `:`.
 
 ### Graphical Commands
 1. Drag and drop JPEG image files onto the image to set the image for the current scene.
+2. Drag and drop WAV, MP3, or AAC files onto the audio player to set the sound for the current scene.
 2. Drag and drop the `.zip` file for the current adventure from the bottom right corner of the screen. This is useful for sharing.
 3. Drag and drop `.zip` files into the text input area to import adventures.

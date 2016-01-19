@@ -104,11 +104,11 @@ public class Grow extends Application {
 		c = new Console();
 		image = new HBox();
 		player = new SoundPlayer();
-		SplitPane mediaPane = new SplitPane(image, player);
+		SplitPane mediaPane = new SplitPane(player, c);
 		mediaPane.setOrientation(Orientation.VERTICAL);
-		SplitPane split = new SplitPane(mediaPane, c);
+		SplitPane split = new SplitPane(image, mediaPane);
 		split.setOrientation(Orientation.VERTICAL);
-		split.setDividerPositions(.7, .3);
+		split.setDividerPositions(.6, .4);
 		BorderPane mainPane = new BorderPane(split);
 		GridPane bottomGrid = new GridPane();
 		adventureName = new Label();

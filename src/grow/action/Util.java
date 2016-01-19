@@ -112,11 +112,29 @@ public class Util {
 	 */
 	public static String prettyRule(Rule r) {
 		StringBuilder result = new StringBuilder();
-		result.append("Patterns:\n");
-		result.append(printNumberedList("", ".", 2, 5, r.patterns()));
-		result.append("Actions:\n");
-		result.append(printNumberedList("", ".", 2, 5, r.actions()));
+		if (r.patterns().size() <= 1) {
+			result.append("Pattern: " + firstOrNone(r.patterns()) + "\n");
+		} else {
+			result.append("Patterns:\n");
+			result.append(printNumberedList("", ".", 2, 5, r.patterns()));
+		}
+		if (r.actions().size() <= 1) {
+			result.append("Action:  " + firstOrNone(r.actions()) + "\n");
+		} else {
+			result.append("Actions:\n");
+			result.append(printNumberedList("", ".", 2, 5, r.actions()));
+		}
 		return result.toString();
+	}
+
+	/**
+	 * @param things
+	 *            a list with either 1 or 0 things in it
+	 * @return {@code "[none]"} if the list has 0 things in it, or the only
+	 *         element if the list has things in it.
+	 */
+	private static String firstOrNone(Collection<?> things) {
+		return things.size() == 0 ? "[none]" : things.iterator().next().toString();
 	}
 
 	/**

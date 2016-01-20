@@ -77,4 +77,25 @@
 			<runtime dir="${env.JAVA_HOME}" />
 		</bundleapp>
 	</target>
+	<target name="zipapp">
+		<delete dir="build/GrowApp">
+		</delete>
+		<mkdir dir="build/GrowApp" />
+		<copy todir="build/GrowApp/Grow.app">
+			<fileset dir="build/Grow.app">
+			</fileset>
+		</copy>
+		<copy file="LICENSE.txt" todir="build/GrowApp">
+		</copy>
+		<copy file="README.md" todir="build/GrowApp">
+		</copy>
+		<copy todir="build/GrowApp/attribution">
+			<fileset dir="attribution" includes="**">
+			</fileset>
+		</copy>
+		<zip destfile="build/GrowApp.zip" basedir="build/GrowApp">
+		</zip>
+		<delete dir="build/GrowApp">
+		</delete>
+	</target>
 </project>

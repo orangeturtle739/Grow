@@ -26,6 +26,7 @@ While this version of the game is backwards compatible with the version describe
 ### Text Commands
 To enter a command, prefix it with `:`.
 
+#### Basic Commands
 1. `quit`: exits the game
 2. `restart`: sets your score to 0 and takes you back to the first scene of the adventure
 3. `extend`: adds a rule to the current scene
@@ -38,8 +39,30 @@ To enter a command, prefix it with `:`.
 9. `change story`: changes the story
 10. `new`: creates a new story
 
+#### Advanced Commands
+1. `import image`: imports an image (jpeg or png) from the URI specified on the next line.
+2. `import music`: imports a music file (mp3, wav, or aac) from the URI specified on the next line.
+3. `import adventure`: importa an adventure (a zip file) from the URI specified on the next line.
+4. `clear image`: clears the saved image for the current scene
+5. `clear music`: clears the saved music for the current scene
+6. `save`: saves the current adventure. The game saves automatically when needed, so there is no need to use this command during normal use.
+
+#### Other Commands
+1. `about`: prints information about the program.
+2. `license`: prints license information.
+
 ### Graphical Commands
 1. Drag and drop JPEG image files onto the image to set the image for the current scene.
 2. Drag and drop WAV, MP3, or AAC files onto the audio player to set the sound for the current scene.
 2. Drag and drop the `.zip` file for the current adventure from the bottom right corner of the screen. This is useful for sharing.
 3. Drag and drop `.zip` files into the text input area to import adventures.
+
+#Building
+Run `ant`.
+
+# License
+This program is liscened under GPLv3.0. A copy of the license is in `license.txt`.
+
+## Attribution
+1.  Font Awesome by Dave Gandy - [http://fontawesome.io](http://fontawesome.io).
+2.  Ubuntu Mono - see the Ubuntu Mono license at `attribution/ubuntu-font-licence-1.0.txt`.

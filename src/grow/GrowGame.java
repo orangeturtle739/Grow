@@ -123,6 +123,8 @@ public class GrowGame {
 		base.rules().add(new Rule(Arrays.asList(saveManager.saveAction()), "save"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.importPicture()), "import image"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.importMusic()), "import music"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.clearImage()), "clear image"));
+		base.rules().add(new Rule(Arrays.asList(saveManager.clearMusic()), "clear music"));
 	}
 
 	/**

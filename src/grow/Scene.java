@@ -64,13 +64,14 @@ public class Scene {
 	 *            scene.
 	 */
 	public Scene(String name, String description, Image image) {
-		clearSoundChanged();
-		clearImageChanged();
 		this.name = name;
 		rules = new LinkedList<>();
 		this.description = description;
 		setImage(image);
 		setSound(null);
+		// By default, mark the image and sound as having changed
+		imageChanged = true;
+		soundChanged = true;
 	}
 
 	/**

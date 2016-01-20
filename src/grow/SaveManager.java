@@ -553,10 +553,23 @@ public class SaveManager {
 	 * @param g
 	 *            the game
 	 * @param i
-	 *            the image
+	 *            the image. A value of null will delete the image.
 	 * @return true if the save succeeded, false otherwise.
 	 */
 	public boolean saveImage(Scene s, Game g, Image i) {
+
+		if (i == null) {
+			try {
+				ZipLocker zip = new ZipLocker(adventureFile(g.name()));
+				zip.delete(s.name() + ".jpeg");
+				zip.close();
+				s.setImage(null);
+			} catch (IOException e) {
+				return false;
+			}
+			return true;
+		}
+
 		try {
 			BufferedImage buff = SwingFXUtils.fromFXImage(i, null);
 			if (buff == null) {
@@ -613,6 +626,17 @@ public class SaveManager {
 	 * @return true if the save succeeded, false otherwise.
 	 */
 	public boolean saveSound(Scene s, Game g, URI i) {
+
+		if (i == null) {
+			try {
+				deleteSoundFile(s);
+				s.setSound(null);
+			} catch (IOException e) {
+				return false;
+			}
+			return true;
+		}
+
 		File f = new File(i);
 		int eIndex = f.getName().lastIndexOf(".");
 		if (eIndex == -1) {
@@ -623,12 +647,7 @@ public class SaveManager {
 			return false;
 		}
 		try {
-			if (s.sound() != null) {
-				String[] array = s.sound().toString().split("!");
-				FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
-				Files.delete(fs.getPath(array[1]));
-				fs.close();
-			}
+			deleteSoundFile(s);
 			String newFileName = s.name() + "." + extension;
 			OutputStream out = writeImage(g.name(), newFileName);
 			Files.copy(Paths.get(i), out);
@@ -639,6 +658,23 @@ public class SaveManager {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Effect: deletes the sound file for the specified scene from the ZIP file
+	 * 
+	 * @param s
+	 *            the scene
+	 * @throws IOException
+	 *             if there is a problem
+	 */
+	private static void deleteSoundFile(Scene s) throws IOException {
+		if (s.sound() != null) {
+			String[] array = s.sound().toString().split("!");
+			FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
+			Files.delete(fs.getPath(array[1]));
+			fs.close();
+		}
 	}
 
 	/**
@@ -837,6 +873,44 @@ public class SaveManager {
 				} catch (MalformedURLException | URISyntaxException e) {
 					output.println("Error importing image!");
 				}
+				return current;
+			}
+		};
+	}
+
+	/**
+	 * @return an action which clears the music associated with this scene
+	 */
+	public Action clearMusic() {
+		return new Action() {
+
+			@Override
+			public char commandPrefix() {
+				return 0;
+			}
+
+			@Override
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+				saveSound(current, world, null);
+				return current;
+			}
+		};
+	}
+
+	/**
+	 * @return an action which clear the image associated with this scene
+	 */
+	public Action clearImage() {
+		return new Action() {
+
+			@Override
+			public char commandPrefix() {
+				return 0;
+			}
+
+			@Override
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+				saveImage(current, world, null);
 				return current;
 			}
 		};

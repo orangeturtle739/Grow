@@ -214,7 +214,7 @@ public class SaveManager {
 		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
 		List<String> fileNames = zip.listFiles();
 		zip.close();
-		Pattern p = Pattern.compile("(\\d+_" + Pattern.quote(sceneName + ".") + ")(" + soundExtRegex + ")");
+		Pattern p = Pattern.compile("(" + Pattern.quote(sceneName + ".") + ")(" + soundExtRegex + ")");
 		for (String str : fileNames) {
 			if (p.matcher(str).matches()) {
 				return readSoundFile(adventureName, str);
@@ -522,18 +522,13 @@ public class SaveManager {
 			return false;
 		}
 		try {
-			int num = 1;
 			if (s.sound() != null) {
 				String[] array = s.sound().toString().split("!");
 				FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
 				Files.delete(fs.getPath(array[1]));
-				// Get the file number, which is the part before the first _ in
-				// the second part of the path. Also, increase the number by 1.
-				// The format of array[1] is /story/32_forest.mp3
-				num = Integer.parseInt(array[1].split("/", 3)[2].split("_", 2)[0]) + 1;
 				fs.close();
 			}
-			String newFileName = num + "_" + s.name() + "." + extension;
+			String newFileName = s.name() + "." + extension;
 			OutputStream out = writeImage(g.name(), newFileName);
 			Files.copy(Paths.get(i), out);
 			out.close();

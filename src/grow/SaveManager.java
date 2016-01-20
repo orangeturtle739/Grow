@@ -28,6 +28,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -36,6 +37,7 @@ import grow.action.Go;
 import grow.action.Quit;
 import grow.action.Read;
 import grow.action.Save;
+import grow.action.Util;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import util.ZipLocker;
@@ -109,10 +111,100 @@ public class SaveManager {
 	 * @return the initial game
 	 */
 	public Game init(Scanner input, PrintStream output) {
+		clean(input, output);
 		Game result = initGame(input, output);
 		linkMedia(result);
 		new Go(result.current().name()).act(result.current(), result, input, output);
 		return result;
+	}
+
+	/**
+	 * Effect: looks through the grow game directory and identifies state files
+	 * without a corresponding adventure file, and adventure files without a
+	 * corresponding state file. Then, with the user's permission, deletes the
+	 * files.
+	 *
+	 * @param input
+	 *            the input stream
+	 * @param output
+	 *            the output stream
+	 */
+	public void clean(Scanner input, PrintStream output) {
+		Set<String> states = new HashSet<>();
+		Set<String> adventures = new HashSet<>();
+		File stateDir = new File(growDir, ADVENTURE_STATE);
+		states.addAll(Arrays.asList(stateDir.listFiles()).stream().map((f) -> f.getName()).collect(Collectors.toList()));
+		File adventureDir = new File(growDir, ADVENTURES);
+		adventures.addAll(Arrays.asList(adventureDir.listFiles()).stream().map((f) -> f.getName()).collect(Collectors.toList()));
+		Set<String> badStateFiles = new HashSet<>();
+		Set<String> badAdventureFiles = new HashSet<>();
+		Set<String> goodStateFiles = new HashSet<>();
+		Set<String> goodAdventureFiles = new HashSet<>();
+		for (String str : states) {
+			if (!str.startsWith(".")) {
+				if (!str.endsWith("_state.txt")) {
+					badStateFiles.add(str);
+				} else {
+					goodStateFiles.add(str);
+				}
+			}
+		}
+		for (String str : adventures) {
+			if (!str.startsWith(".")) {
+				if (!str.endsWith(".zip")) {
+					badAdventureFiles.add(str);
+				} else {
+					goodAdventureFiles.add(str);
+				}
+			}
+		}
+		Set<String> adventureLessStates = new HashSet<>();
+		for (String state : goodStateFiles) {
+			String adventureName = state.substring(0, state.length() - "_state.txt".length());
+			if (!goodAdventureFiles.contains(adventureName + ".zip")) {
+				adventureLessStates.add(state);
+			}
+		}
+
+		if (badStateFiles.size() != 0) {
+			output.println("There are game states stored in your grow folder which are named improperly:");
+			Util.printNumberedList("", ".", 0, 5, output, badStateFiles);
+			output.println("Would you like to remove them? (y/n)");
+			if (yesNo(input)) {
+				for (String str : badStateFiles) {
+					new File(stateDir, str).delete();
+				}
+			}
+		}
+		if (badAdventureFiles.size() != 0) {
+			output.println("There are adventures stored in your grow folder which are named improperly:");
+			Util.printNumberedList("", ".", 0, 5, output, badAdventureFiles);
+			output.println("Would you like to remove them? (y/n)");
+			if (yesNo(input)) {
+				for (String str : badAdventureFiles) {
+					new File(adventureDir, str).delete();
+				}
+			}
+		}
+		if (adventureLessStates.size() != 0) {
+			output.println("There are state files stored in your grow folder which correspond to adventures which do not exist:");
+			Util.printNumberedList("", ".", 0, 5, output, adventureLessStates);
+			output.println("Would you like to remove them? (y/n)");
+			if (yesNo(input)) {
+				for (String str : adventureLessStates) {
+					new File(stateDir, str).delete();
+				}
+			}
+		}
+	}
+
+	/**
+	 * @param input
+	 *            the input
+	 * @return true only if the input is {@code Y} or {@code y}.
+	 */
+	private static boolean yesNo(Scanner input) {
+		return input.nextLine().equalsIgnoreCase("y");
 	}
 
 	// /**
@@ -211,27 +303,16 @@ public class SaveManager {
 	 *             if the sound file cannot be found
 	 */
 	private URI readSound(String adventureName, String sceneName) throws IOException {
-		try {
-			System.out.println("Read sound 0");
-			ZipLocker zip = new ZipLocker(adventureFile(adventureName));
-			System.out.println("Read sound 1");
-			List<String> fileNames = zip.listFiles();
-			System.out.println("Read sound 2");
-			zip.close();
-			System.out.println("Read sound 3");
-			Pattern p = Pattern.compile("(" + Pattern.quote(sceneName + ".") + ")(" + soundExtRegex + ")");
-			for (String str : fileNames) {
-				if (p.matcher(str).matches()) {
-					return readSoundFile(adventureName, str);
-				}
+		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
+		List<String> fileNames = zip.listFiles();
+		zip.close();
+		Pattern p = Pattern.compile("(" + Pattern.quote(sceneName + ".") + ")(" + soundExtRegex + ")");
+		for (String str : fileNames) {
+			if (p.matcher(str).matches()) {
+				return readSoundFile(adventureName, str);
 			}
-			throw new NoSuchFileException(sceneName);
-		} catch (Exception e) {
-			System.out.println("YO!!!!");
-			e.printStackTrace();
-			System.out.println("YO!!!!");
-			return null;
 		}
+		throw new NoSuchFileException(sceneName);
 	}
 
 	/**
@@ -339,16 +420,12 @@ public class SaveManager {
 				String last = s.nextLine();
 				s.close();
 				File gameFile = new File(new File(growDir, ADVENTURES), last + ".zip");
-				System.out.println("Game File: " + gameFile);
-				System.out.println(gameFile.exists());
 				if (!gameFile.exists()) {
 					throw new IOException("Game file " + gameFile + " does not exist.");
 				}
 				state = new Scanner(readAdventureState(last));
 				game = new Scanner(readAdventure(last));
-				System.out.println("Read");
 				Game r = Game.parseGame(state, game);
-				System.out.println("Parsed");
 				state.close();
 				game.close();
 				return r;

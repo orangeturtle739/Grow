@@ -590,7 +590,14 @@ public class SaveManager {
 
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
-				File adventureZip = new File(input.nextLine());
+				File adventureZip;
+				try {
+					adventureZip = new File(new URI(input.nextLine()));
+				} catch (URISyntaxException e2) {
+					output.println("Bad URI Syntax: " + e2.getMessage());
+					return current;
+				}
+
 				Set<String> fileNames = adventureFileNames();
 				// Remove the trailing .zip
 				if (!adventureZip.getName().endsWith(".zip") || !adventureZip.exists()) {

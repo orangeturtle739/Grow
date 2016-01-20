@@ -265,7 +265,7 @@ public class Grow extends Application {
 
 			if (newAdventure != null) {
 				final File realName = newAdventure;
-				if (gameThread.inject(":import adventure\n" + realName.getAbsolutePath().toString())) {
+				if (gameThread.inject(":import adventure\n" + realName.toURI())) {
 					event.setDropCompleted(true);
 				} else {
 					event.setDropCompleted(false);

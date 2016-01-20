@@ -35,6 +35,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -174,7 +175,20 @@ public class Grow extends Application {
 		primaryStage.setOnCloseRequest(e -> {
 			if (!gameThread.inject(":quit")) {
 				// We cannot just quit because they might be editing something.
-				new Alert(AlertType.ERROR, "You must finish editing before quitting.", ButtonType.OK).showAndWait();
+				Alert a = new Alert(AlertType.WARNING,
+						"You are currently editing your adventure. In order to save your progress and exit, you must finish your edit and then exit. If you exit now, you will loose your edits, and your adventure may become corrupted. Would you like to exit now?",
+						ButtonType.YES, ButtonType.NO);
+
+				// Deactivate Default behavior for yes-Button:
+				Button yesButton = (Button) a.getDialogPane().lookupButton(ButtonType.YES);
+				yesButton.setDefaultButton(false);
+				// Activate Default behavior for no-Button:
+				Button noButton = (Button) a.getDialogPane().lookupButton(ButtonType.NO);
+				noButton.setDefaultButton(true);
+				Optional<ButtonType> result = a.showAndWait();
+				if (result.isPresent() && result.get().equals(ButtonType.YES)) {
+					Platform.exit();
+				}
 			}
 			e.consume();
 		});

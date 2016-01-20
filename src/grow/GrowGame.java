@@ -198,42 +198,50 @@ public class GrowGame {
 	 * @return true if the game is still going, false if the game is over
 	 */
 	public boolean doTurn(String line, MediaProcessor p, StatusUpdater u) {
-		List<Action> actions = null;
-		// Check to see if it is a command
-		if (line.startsWith(":")) {
-			actions = base.act(line.substring(1));
-		}
-		actions = actions == null ? world.current().act(line) : actions;
-		if (actions == null) {
-			output.println(randomResponse());
-		} else {
-			for (Action a : actions) {
-				Scene next = a.act(world.current(), world, input, output);
-				try {
-					world.move(next);
-				} catch (NoSuchScene e) {
-					output.println("Something bad has occurred. Please tell the developer.");
-					e.printStackTrace(output);
-					next = null;
-				}
-				if (next == null) {
-					// The game is over, so reset (allow another call to init)
-					world = null;
-					return false;
-				} else {
-					if (next.imageChanged()) {
-						next.clearImageChanged();
-						p.process(next.image());
+		try {
+			List<Action> actions = null;
+			// Check to see if it is a command
+			if (line.startsWith(":")) {
+				actions = base.act(line.substring(1));
+			}
+			actions = actions == null ? world.current().act(line) : actions;
+			if (actions == null) {
+				output.println(randomResponse());
+			} else {
+				for (Action a : actions) {
+					Scene next = a.act(world.current(), world, input, output);
+					try {
+						world.move(next);
+					} catch (NoSuchScene e) {
+						output.println("Something bad has occurred. Please tell the developer.");
+						e.printStackTrace(output);
+						next = null;
 					}
-					if (next.soundChanged()) {
-						next.clearSoundChanged();
-						p.process(next.sound());
+					if (next == null) {
+						// The game is over, so reset (allow another call to
+						// init)
+						world = null;
+						return false;
+					} else {
+						if (next.imageChanged()) {
+							next.clearImageChanged();
+							p.process(next.image());
+						}
+						if (next.soundChanged()) {
+							next.clearSoundChanged();
+							p.process(next.sound());
+						}
+						u.update(world.name(), world.current().name());
 					}
-					u.update(world.name(), world.current().name());
 				}
 			}
+			return true;
+		} catch (Exception e) {
+			output.println("Something really bad happened.");
+			e.printStackTrace(output);
+			output.println("Please tell the developer.");
+			return true;
 		}
-		return true;
 	}
 
 	/**

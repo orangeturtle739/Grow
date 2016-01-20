@@ -114,7 +114,7 @@ public class Grow extends Application {
 		mediaPane.setOrientation(Orientation.VERTICAL);
 		SplitPane split = new SplitPane(image, mediaPane);
 		split.setOrientation(Orientation.VERTICAL);
-		split.setDividerPositions(.6, .4);
+		split.setDividerPositions(.5, .5);
 		BorderPane mainPane = new BorderPane(split);
 		GridPane bottomGrid = new GridPane();
 		adventureName = new Label();

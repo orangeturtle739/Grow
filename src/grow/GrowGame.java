@@ -209,6 +209,7 @@ public class GrowGame {
 				output.println(randomResponse());
 			} else {
 				for (Action a : actions) {
+					Scene prev = world.current();
 					Scene next = a.act(world.current(), world, input, output);
 					try {
 						world.move(next);
@@ -223,11 +224,11 @@ public class GrowGame {
 						world = null;
 						return false;
 					} else {
-						if (next.imageChanged()) {
+						if (next.imageChanged() || prev != next) {
 							next.clearImageChanged();
 							p.process(next.image());
 						}
-						if (next.soundChanged()) {
+						if (next.soundChanged() || prev != next) {
 							next.clearSoundChanged();
 							p.process(next.sound());
 						}

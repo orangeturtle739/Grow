@@ -1,0 +1,12 @@
+ 
+Advanced Commands:
+To import an image, use ":import image". Then, type the URI of the image (jpeg or png) you would like to import, and hit enter. 
+To import music, use ":import music". Then, type the URI of the music file (mp3, wav, or aac) you would like to import, and hit enter.
+To import another adventure, use ":import adventure". Then, type the URI of the adventure zip file you would like to import, and hit enter.
+To clear the saved image for the current scene, use ":clear image".
+To clear the saved music for the current scene, use ":clear music".
+To save the current adventure now, use ":save". The game saves automatically when needed, so there is no need to use this command during normal use.
+ 
+About:
+For information about this program, type ":about".
+For license information, type ":license".

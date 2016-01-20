@@ -1,6 +1,7 @@
 package grow;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -101,11 +102,11 @@ public class GrowGame {
 		saveManager = new SaveManager(growRoot);
 		world = null;
 		base = new Scene("default", "For help and instructions, type \"help\".");
-		base.rules()
-				.add(new Rule(
-						Arrays.asList(new Print(
-								"To quit, type \":quit\"\nTo start over again, type \":restart\"\nTo add a rule to this scene, type \":extend\"\nTo remove a rule from this scene, type \":remove\"\nTo change the order of the rules in this scene, type \":reorder\"\nTo change the description for the current scene, type \":description\"\nTo cancel an edit, type \":cancel\".\nTo view all the rules for the current scene, type \":view\"\nTo open a different adventure, type \":change story\"\nTo create a new adventure, type \":new\"")),
-				"help"));
+		String helpString = read(GrowGame.class.getResourceAsStream("help/help.txt"));
+		base.rules().add(new Rule(Arrays.asList(new Print(helpString)), "help"));
+		base.rules().add(new Rule(Arrays.asList(new Print(helpString + "\n" + read(GrowGame.class.getResourceAsStream("help/helpa.txt")))), "helpa"));
+		base.rules().add(new Rule(Arrays.asList(new Print(read(GrowGame.class.getResourceAsStream("help/about.txt")))), "about"));
+		base.rules().add(new Rule(Arrays.asList(new Print(read(GrowGame.class.getResourceAsStream("help/license.txt")))), "license"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.quitAction()), "quit"));
 		base.rules().add(new Rule(Arrays.asList(new Restart()), "restart"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.readAction()), "change story"));
@@ -116,7 +117,6 @@ public class GrowGame {
 		base.rules().add(new Rule(Arrays.asList(new Reorder()), "reorder"));
 		base.rules().add(new Rule(Arrays.asList(new ChangeDescription()), "description"));
 		base.rules().add(new Rule(Arrays.asList(new Print("Nothing to cancel.")), "cancel"));
-
 		base.rules().add(new Rule(Arrays.asList(new View()), "view"));
 
 		base.rules().add(new Rule(Arrays.asList(saveManager.importAction()), "import adventure"));
@@ -125,6 +125,28 @@ public class GrowGame {
 		base.rules().add(new Rule(Arrays.asList(saveManager.importMusic()), "import music"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.clearImage()), "clear image"));
 		base.rules().add(new Rule(Arrays.asList(saveManager.clearMusic()), "clear music"));
+	}
+
+	/**
+	 * Effect: reads an input stream into a string. Closes the stream when done.
+	 *
+	 * @param in
+	 *            the input stream
+	 * @return the string.
+	 */
+	private static String read(InputStream in) {
+		Scanner s = new Scanner(in);
+		StringBuilder b = new StringBuilder();
+		while (s.hasNextLine()) {
+			b.append(s.nextLine());
+			b.append("\n");
+		}
+		// Remove the last new line
+		if (b.length() > 0 && b.charAt(b.length() - 1) == '\n') {
+			b.deleteCharAt(b.length() - 1);
+		}
+		s.close();
+		return b.toString();
 	}
 
 	/**

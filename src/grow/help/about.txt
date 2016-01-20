@@ -1,0 +1,11 @@
+Grow is an interactive text-based adventure game, with a GUI which
+displays images and plays sound.
+Copyright (C) 2016  Jacob Glueck
+License: GPLv3.0
+ 
+Version: 1.3.0
+ 
+Attribution:
+1.  Font Awesome by Dave Gandy - http://fontawesome.io
+2.  Ubuntu Mono - see the Ubuntu Mono license at
+    attribution/ubuntu-font-licence-1.0.txt

@@ -1,0 +1,13 @@
+Basic Commands:
+To quit, type ":quit".
+To start over again, type ":restart".
+To add a rule to this scene, type ":extend".
+To edit a rule from this scene, type ":edit".
+To remove a rule from this scene, type ":remove".
+To change the order of the rules in this scene, type ":reorder".
+To change the description for the current scene, type ":description".
+To cancel an edit, type ":cancel".
+To view all the rules for the current scene, type ":view".
+To open a different adventure, type ":change story".
+To create a new adventure, type ":new".
+For advanced commands and other information, type ":helpa".

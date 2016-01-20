@@ -3,7 +3,9 @@ package gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.net.URI;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -273,7 +275,7 @@ public class Grow extends Application {
 
 			if (newAdventure != null) {
 				final File realName = newAdventure;
-				if (gameThread.inject(":import\n" + realName.getAbsolutePath().toString())) {
+				if (gameThread.inject(":import adventure\n" + realName.getAbsolutePath().toString())) {
 					event.setDropCompleted(true);
 				} else {
 					event.setDropCompleted(false);
@@ -317,13 +319,14 @@ public class Grow extends Application {
 				}
 			}
 
-			if (newSound != null && g.saveSound(newSound.toURI())) {
-				event.setDropCompleted(true);
-				player.load(newSound.toURI(), true);
-				player.play();
-			} else {
-				event.setDropCompleted(false);
+			boolean completed = false;
+			if (newSound != null) {
+				player.clear();
+				if (gameThread.inject(":import music\n" + newSound.toURI())) {
+					completed = true;
+				}
 			}
+			event.setDropCompleted(completed);
 
 			event.consume();
 		});
@@ -385,6 +388,21 @@ public class Grow extends Application {
 	 *            the arguments
 	 */
 	private static void doMain(String[] args) {
+
+		// There is a bug in the JavaFX Media library, caused by a problem in
+		// the URLConnection class. The URLConnection class by default will use
+		// caches, so if I edit a jar file, and put a new sound file inside,
+		// then the URLConnection fails to see the new sound file, and the Media
+		// class plays the old one. To fix this, I change the default use caches
+		// to always be false.
+		try {
+			Field f = URLConnection.class.getDeclaredField("defaultUseCaches");
+			f.setAccessible(true);
+			f.set(null, false);
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e1) {
+			e1.printStackTrace();
+		}
+
 		try {
 			Map<String, List<String>> a = processArgs(args, "-t", "--grow-root", "--reset-root", "--set-root", "--help");
 

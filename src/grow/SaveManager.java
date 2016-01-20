@@ -9,14 +9,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +52,10 @@ public class SaveManager {
 	 * The supported sound file extensions.
 	 */
 	public static final Set<String> SOUND_FILES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("mp3", "wav", "aac")));
+	/**
+	 * A regex for finding sound file extensions.
+	 */
+	private static final String soundExtRegex = String.join("|", SOUND_FILES);
 
 	/**
 	 * The name of the file in which the last adventure playing is stored.
@@ -189,7 +197,34 @@ public class SaveManager {
 	}
 
 	/**
-	 * Gets the URI to a sound file.
+	 * Gets the URI to a sound file. Finds the sound file based on the scene
+	 * name.
+	 *
+	 * @param adventureName
+	 *            the adventure name
+	 * @param sceneName
+	 *            the name of the scene
+	 * @return the URI
+	 * @throws IOException
+	 *             if there is a problem
+	 * @throws NoSuchFileException
+	 *             if the sound file cannot be found
+	 */
+	private URI readSound(String adventureName, String sceneName) throws IOException {
+		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
+		List<String> fileNames = zip.listFiles();
+		zip.close();
+		Pattern p = Pattern.compile("(\\d+_" + Pattern.quote(sceneName + ".") + ")(" + soundExtRegex + ")");
+		for (String str : fileNames) {
+			if (p.matcher(str).matches()) {
+				return readSoundFile(adventureName, str);
+			}
+		}
+		throw new NoSuchFileException(sceneName);
+	}
+
+	/**
+	 * Reads sound from a specified file name
 	 *
 	 * @param adventureName
 	 *            the adventure name
@@ -199,42 +234,11 @@ public class SaveManager {
 	 * @throws IOException
 	 *             if there is a problem
 	 */
-	private URI readSound(String adventureName, String fileName) throws IOException {
+	private URI readSoundFile(String adventureName, String fileName) throws IOException {
 		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
 		URI result = zip.getURI(fileName);
 		zip.close();
 		return result;
-	}
-
-	/**
-	 * Effect: searches in the adventure ZIP file for files with the specified
-	 * prefix and one of the specified extensions. If a file with a prefix and
-	 * one of the extensions is found, the extension is returned. Otherwise, a
-	 * no such file exception is thrown.
-	 *
-	 * @param adventureName
-	 *            the name of the adventure
-	 * @param filePrefix
-	 *            the prefix of the file
-	 * @param extensions
-	 *            the possible extensions
-	 * @return the extension
-	 * @throws NoSuchFileException
-	 *             if no such file exists
-	 */
-	private String findAdventureFile(String adventureName, String filePrefix, Collection<String> extensions) throws NoSuchFileException {
-		for (String ext : extensions) {
-			try {
-				String name = filePrefix + "." + ext;
-				// Make sure to close the stream
-				readImage(adventureName, name).close();
-				// If we get here, it exists.
-				return ext;
-			} catch (IOException e) {
-				// Ignore it, this file did not exist
-			}
-		}
-		throw new NoSuchFileException(filePrefix + extensions.toString());
 	}
 
 	// /**
@@ -489,7 +493,7 @@ public class SaveManager {
 		for (String s : scenes.keySet()) {
 			try {
 				// Throws a no such file exception if there is no image.
-				scenes.get(s).setSound(readSound(g.name(), s + "." + findAdventureFile(g.name(), s, SOUND_FILES)));
+				scenes.get(s).setSound(readSound(g.name(), s));
 			} catch (IOException e) {
 			}
 		}
@@ -518,15 +522,23 @@ public class SaveManager {
 			return false;
 		}
 		try {
-			OutputStream out = writeImage(g.name(), s.name() + "." + extension);
+			int num = 1;
+			if (s.sound() != null) {
+				String[] array = s.sound().toString().split("!");
+				FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
+				Files.delete(fs.getPath(array[1]));
+				// Get the file number, which is the part before the first _ in
+				// the second part of the path. Also, increase the number by 1.
+				// The format of array[1] is /story/32_forest.mp3
+				num = Integer.parseInt(array[1].split("/", 3)[2].split("_", 2)[0]) + 1;
+				fs.close();
+			}
+			String newFileName = num + "_" + s.name() + "." + extension;
+			OutputStream out = writeImage(g.name(), newFileName);
 			Files.copy(Paths.get(i), out);
 			out.close();
-		} catch (IOException e) {
-			return false;
-		}
-
-		try {
-			s.setSound(readSound(g.name(), s + "." + findAdventureFile(g.name(), s.name(), SOUND_FILES)));
+			URI newURI = readSoundFile(g.name(), newFileName);
+			s.setSound(newURI);
 		} catch (IOException e) {
 			return false;
 		}
@@ -672,6 +684,57 @@ public class SaveManager {
 					output.println("Problem reading the new adventure: " + e.getMessage());
 					return current;
 				}
+			}
+		};
+	}
+
+	/**
+	 * @return an action to import music
+	 */
+	public Action importMusic() {
+		return new Action() {
+
+			@Override
+			public char commandPrefix() {
+				return 0;
+			}
+
+			@Override
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+				try {
+					if (!saveSound(current, world, new URI(input.nextLine()))) {
+						output.println("Failed to import music.");
+					}
+				} catch (URISyntaxException e) {
+					output.println("Bad URI syntax: " + e.getMessage());
+				}
+				return current;
+			}
+		};
+	}
+
+	/**
+	 * @return an action to import pictures
+	 */
+	public Action importPicture() {
+		return new Action() {
+
+			@Override
+			public char commandPrefix() {
+				return 0;
+			}
+
+			@Override
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+				try {
+					Image i = new Image(new URI(input.nextLine()).toURL().toString());
+					if (!saveImage(current, world, i)) {
+						output.println("Failed to save image!");
+					}
+				} catch (MalformedURLException | URISyntaxException e) {
+					output.println("Error importing image!");
+				}
+				return current;
 			}
 		};
 	}

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -16,6 +17,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -104,7 +107,29 @@ public class ZipLocker {
 	public OutputStream write(String... parts) throws IOException {
 		Path path = fs.getPath(rootFileName(), parts);
 		Files.createDirectories(path.toAbsolutePath().getParent());
-		return Files.newOutputStream(path, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
+		// The dsync ensures that the data is always written instantly because
+		// other parts of the program may access the ZIP file through a URI, and
+		// they expect it to be updated.
+		return Files.newOutputStream(path, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE, StandardOpenOption.DSYNC);
+	}
+
+	/**
+	 * Effect: gets the name of all the files in the specified internal
+	 * directory
+	 *
+	 * @param parts
+	 *            the path of the internal directory
+	 * @return the names of all the files (does not include subdirectories).
+	 * @throws IOException
+	 *             if there is a problem
+	 */
+	public List<String> listFiles(String... parts) throws IOException {
+		DirectoryStream<Path> files = Files.newDirectoryStream(fs.getPath(rootFileName(), parts), entry -> !Files.isDirectory(entry));
+		List<String> fileNames = new LinkedList<>();
+		for (Path p : files) {
+			fileNames.add(p.getFileName().toString());
+		}
+		return fileNames;
 	}
 
 	/**
@@ -124,7 +149,7 @@ public class ZipLocker {
 
 	/**
 	 * Constructs a URI to a specified file. The file may or may not exist.
-	 * 
+	 *
 	 * @param more
 	 *            the path to the file
 	 * @return the URI
@@ -143,7 +168,7 @@ public class ZipLocker {
 	 *             if there is a problem
 	 */
 	public void delete(String... more) throws IOException {
-		Files.delete(fs.getPath(rootFileName(), more));
+		Files.deleteIfExists(fs.getPath(rootFileName(), more));
 	}
 
 	/**

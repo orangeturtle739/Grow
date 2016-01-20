@@ -160,10 +160,11 @@ public class SoundPlayer extends HBox {
 	 */
 	public void clear() {
 		if (player != null) {
-			pause();
 			player.dispose();
 			player = null;
 		}
+		play.setSelected(false);
+		play.setText(PLAY);
 		play.setDisable(true);
 		progress.setProgress(0);
 		passed.setText("00:00");
@@ -225,7 +226,7 @@ public class SoundPlayer extends HBox {
 	/**
 	 * Effect: makes the player jump to the specified time in the file.<br>
 	 * Requires: sound must be loaded.
-	 * 
+	 *
 	 * @param d
 	 *            the time
 	 */

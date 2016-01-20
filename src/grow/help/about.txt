@@ -4,6 +4,7 @@ Copyright (C) 2016  Jacob Glueck
 License: GPLv3.0
  
 Version: 1.3.0
+Website: https://github.com/orangeturtle739/Grow
  
 Attribution:
 1.  Font Awesome by Dave Gandy - http://fontawesome.io

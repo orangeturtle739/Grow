@@ -211,16 +211,27 @@ public class SaveManager {
 	 *             if the sound file cannot be found
 	 */
 	private URI readSound(String adventureName, String sceneName) throws IOException {
-		ZipLocker zip = new ZipLocker(adventureFile(adventureName));
-		List<String> fileNames = zip.listFiles();
-		zip.close();
-		Pattern p = Pattern.compile("(" + Pattern.quote(sceneName + ".") + ")(" + soundExtRegex + ")");
-		for (String str : fileNames) {
-			if (p.matcher(str).matches()) {
-				return readSoundFile(adventureName, str);
+		try {
+			System.out.println("Read sound 0");
+			ZipLocker zip = new ZipLocker(adventureFile(adventureName));
+			System.out.println("Read sound 1");
+			List<String> fileNames = zip.listFiles();
+			System.out.println("Read sound 2");
+			zip.close();
+			System.out.println("Read sound 3");
+			Pattern p = Pattern.compile("(" + Pattern.quote(sceneName + ".") + ")(" + soundExtRegex + ")");
+			for (String str : fileNames) {
+				if (p.matcher(str).matches()) {
+					return readSoundFile(adventureName, str);
+				}
 			}
+			throw new NoSuchFileException(sceneName);
+		} catch (Exception e) {
+			System.out.println("YO!!!!");
+			e.printStackTrace();
+			System.out.println("YO!!!!");
+			return null;
 		}
-		throw new NoSuchFileException(sceneName);
 	}
 
 	/**
@@ -321,23 +332,36 @@ public class SaveManager {
 	private Game initGame(Scanner input, PrintStream output) {
 		File currentFile = currentFile();
 		if (currentFile.exists()) {
+			Scanner state = null;
+			Scanner game = null;
 			try {
 				Scanner s = new Scanner(currentFile);
 				String last = s.nextLine();
 				s.close();
 				File gameFile = new File(new File(growDir, ADVENTURES), last + ".zip");
+				System.out.println("Game File: " + gameFile);
+				System.out.println(gameFile.exists());
 				if (!gameFile.exists()) {
 					throw new IOException("Game file " + gameFile + " does not exist.");
 				}
-				Scanner state = new Scanner(readAdventureState(last));
-				Scanner game = new Scanner(readAdventure(last));
+				state = new Scanner(readAdventureState(last));
+				game = new Scanner(readAdventure(last));
+				System.out.println("Read");
 				Game r = Game.parseGame(state, game);
+				System.out.println("Parsed");
 				state.close();
 				game.close();
 				return r;
 			} catch (Exception e) {
 				output.println("Error loading last game state: " + e.getMessage());
 				output.println("Will create new game.");
+			} finally {
+				if (state != null) {
+					state.close();
+				}
+				if (game != null) {
+					game.close();
+				}
 			}
 		}
 

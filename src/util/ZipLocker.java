@@ -13,6 +13,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -115,7 +116,8 @@ public class ZipLocker {
 
 	/**
 	 * Effect: gets the name of all the files in the specified internal
-	 * directory
+	 * directory. If the path provided is not a directory, this method returns
+	 * an empty list.
 	 *
 	 * @param parts
 	 *            the path of the internal directory
@@ -124,12 +126,16 @@ public class ZipLocker {
 	 *             if there is a problem
 	 */
 	public List<String> listFiles(String... parts) throws IOException {
-		DirectoryStream<Path> files = Files.newDirectoryStream(fs.getPath(rootFileName(), parts), entry -> !Files.isDirectory(entry));
-		List<String> fileNames = new LinkedList<>();
-		for (Path p : files) {
-			fileNames.add(p.getFileName().toString());
+		try {
+			DirectoryStream<Path> files = Files.newDirectoryStream(fs.getPath(rootFileName(), parts), entry -> !Files.isDirectory(entry));
+			List<String> fileNames = new LinkedList<>();
+			for (Path p : files) {
+				fileNames.add(p.getFileName().toString());
+			}
+			return fileNames;
+		} catch (NotDirectoryException e) {
+			return new LinkedList<>();
 		}
-		return fileNames;
 	}
 
 	/**

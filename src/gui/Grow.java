@@ -99,6 +99,10 @@ public class Grow extends Application {
 	 * The label for the drag and drop
 	 */
 	private Label dragAndDrop;
+	/**
+	 * The game thread
+	 */
+	private GameThread gameThread;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -164,7 +168,7 @@ public class Grow extends Application {
 
 		g = new GrowGame(c.input(), c.output(), getRoot());
 
-		GameThread gameThread = new GameThread();
+		gameThread = new GameThread();
 		gameThread.start();
 		Platform.setImplicitExit(false);
 		primaryStage.setOnCloseRequest(e -> {
@@ -176,45 +180,7 @@ public class Grow extends Application {
 		});
 
 		// Handle drag and drop images
-		image.setOnDragOver(event -> {
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
-				event.acceptTransferModes(TransferMode.COPY);
-			}
-			event.consume();
-		});
-		image.setOnDragEntered(event -> {
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
-				image.setEffect(new Glow());
-			}
-			event.consume();
-		});
-		image.setOnDragExited(event -> {
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
-				image.setEffect(null);
-			}
-			event.consume();
-		});
-		image.setOnDragDropped(event -> {
-			boolean success = false;
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
-				File newImage = null;
-				if (event.getDragboard().hasFiles()) {
-					List<File> files = event.getDragboard().getFiles();
-					if (files.size() == 1) {
-						try {
-							newImage = files.get(0);
-						} catch (Exception e1) {
-							success = false;
-						}
-					}
-				}
-
-				if (newImage != null && gameThread.inject(":import image\n" + newImage.toURI())) {
-					success = true;
-				}
-			}
-			event.setDropCompleted(success);
-			event.consume();
+		configureDrop(image, "import image", () -> {
 		});
 
 		// Handle drag and drop adventures
@@ -227,76 +193,53 @@ public class Grow extends Application {
 				e.consume();
 			}
 		});
-		c.setOnDragOver(event -> {
-			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
-				event.acceptTransferModes(TransferMode.COPY);
-			}
-			event.consume();
-		});
-		c.setOnDragEntered(event -> {
-			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
-				c.setEffect(new Glow());
-			}
-			event.consume();
-		});
-		c.setOnDragExited(event -> {
-			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
-				c.setEffect(null);
-			}
-			event.consume();
-		});
-		c.setOnDragDropped(event -> {
-			File newAdventure = null;
-			if (event.getGestureSource() != c && event.getDragboard().hasFiles()) {
-				if (event.getDragboard().hasFiles()) {
-					List<File> files = event.getDragboard().getFiles();
-					if (files.size() == 1) {
-						try {
-							newAdventure = files.get(0);
-							if (!newAdventure.getName().endsWith(".zip")) {
-								newAdventure = null;
-							}
-						} catch (Exception e1) {
-							newAdventure = null;
-						}
-					}
-				}
-			}
-
-			if (newAdventure != null) {
-				final File realName = newAdventure;
-				if (gameThread.inject(":import adventure\n" + realName.toURI())) {
-					event.setDropCompleted(true);
-				} else {
-					event.setDropCompleted(false);
-				}
-			}
-
-			event.consume();
+		configureDrop(c, "import adventure", () -> {
 		});
 
 		// Handle drag and drop music
-		player.setOnDragOver(event -> {
-			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
+		configureDrop(player, "import music", () -> player.clear());
+
+		primaryStage.setTitle("Grow");
+
+		primaryStage.show();
+	}
+
+	/**
+	 * Effect: configures the region to accept a file dropped onto it by
+	 * executing the specified command in the grow game with the dropped file's
+	 * URI as an argument. The program executes the action before executing the
+	 * command.
+	 *
+	 * @param r
+	 *            the region
+	 * @param command
+	 *            the command for the grow game. Should not start with
+	 *            {@code ":"}; one will be added.
+	 * @param action
+	 *            the action to run just before the command
+	 */
+	private void configureDrop(Region r, String command, Runnable action) {
+		r.setOnDragOver(event -> {
+			if (event.getGestureSource() != r && event.getDragboard().hasFiles()) {
 				event.acceptTransferModes(TransferMode.COPY);
 			}
 			event.consume();
 		});
-		player.setOnDragEntered(event -> {
-			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
-				c.setEffect(new Glow());
+		r.setOnDragEntered(event -> {
+			if (event.getGestureSource() != r && event.getDragboard().hasFiles()) {
+				r.setEffect(new Glow());
 			}
 			event.consume();
 		});
-		player.setOnDragExited(event -> {
-			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
-				c.setEffect(null);
+		r.setOnDragExited(event -> {
+			if (event.getGestureSource() != r && event.getDragboard().hasFiles()) {
+				r.setEffect(null);
 			}
 			event.consume();
 		});
-		player.setOnDragDropped(event -> {
+		r.setOnDragDropped(event -> {
 			File newSound = null;
-			if (event.getGestureSource() != player && event.getDragboard().hasFiles()) {
+			if (event.getGestureSource() != r && event.getDragboard().hasFiles()) {
 				if (event.getDragboard().hasFiles()) {
 					List<File> files = event.getDragboard().getFiles();
 					if (files.size() == 1) {
@@ -311,19 +254,16 @@ public class Grow extends Application {
 
 			boolean completed = false;
 			if (newSound != null) {
-				player.clear();
-				if (gameThread.inject(":import music\n" + newSound.toURI())) {
+				action.run();
+				if (gameThread.inject(":" + command + "\n" + newSound.toURI())) {
 					completed = true;
+				} else {
+					new Alert(AlertType.ERROR, "You must finish editing before trying to drag and drop.", ButtonType.OK).showAndWait();
 				}
 			}
 			event.setDropCompleted(completed);
-
 			event.consume();
 		});
-
-		primaryStage.setTitle("Grow");
-
-		primaryStage.show();
 	}
 
 	/**

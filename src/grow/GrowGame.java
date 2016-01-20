@@ -141,6 +141,10 @@ public class GrowGame {
 		world = saveManager.init(input, output);
 		processor.process(world.current().image());
 		processor.process(world.current().sound());
+
+		// We have just loaded, so clear the changed status
+		world.current().clearImageChanged();
+		world.current().clearSoundChanged();
 		u.update(world.name(), world.current().name());
 	}
 
@@ -193,8 +197,14 @@ public class GrowGame {
 					world = null;
 					return false;
 				} else {
-					p.process(next.image());
-					p.process(next.sound());
+					if (next.imageChanged()) {
+						next.clearImageChanged();
+						p.process(next.image());
+					}
+					if (next.soundChanged()) {
+						next.clearSoundChanged();
+						p.process(next.sound());
+					}
 					u.update(world.name(), world.current().name());
 				}
 			}

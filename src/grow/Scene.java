@@ -32,15 +32,24 @@ public class Scene {
 	private final List<Rule> rules;
 
 	/**
-	 * The image file for this scene. This is volatile because many threads may
-	 * use it.
+	 * The image file for this scene.
 	 */
-	private volatile Image image;
+	private Image image;
 	/**
-	 * The URI for the sound for this scene. This is volatile because many
-	 * threads may use it.
+	 * True if the image has been changed since the last call to
+	 * {@link #clearImageChanged()}.
 	 */
-	private volatile URI sound;
+	private boolean imageChanged;
+
+	/**
+	 * The URI for the sound for this scene.
+	 */
+	private URI sound;
+	/**
+	 * True if the sound has been changed since the last call to
+	 * {@link #clearSoundChanged()}.
+	 */
+	private boolean soundChanged;
 
 	/**
 	 * Creates: a new scene with no actions with the specified name and an empty
@@ -55,10 +64,13 @@ public class Scene {
 	 *            scene.
 	 */
 	public Scene(String name, String description, Image image) {
+		clearSoundChanged();
+		clearImageChanged();
 		this.name = name;
 		rules = new LinkedList<>();
 		this.description = description;
-		this.image = image;
+		setImage(image);
+		setSound(null);
 	}
 
 	/**
@@ -81,7 +93,10 @@ public class Scene {
 	 *            the image file
 	 */
 	public void setImage(Image image) {
-		this.image = image;
+		if (image != null || this.image != null) {
+			this.image = image;
+			imageChanged = true;
+		}
 	}
 
 	/**
@@ -92,13 +107,31 @@ public class Scene {
 	}
 
 	/**
+	 * @return true if the image has changed since the last call to
+	 *         {@link #clearImageChanged()}.
+	 */
+	public boolean imageChanged() {
+		return imageChanged;
+	}
+
+	/**
+	 * Clears the sound changed status
+	 */
+	public void clearImageChanged() {
+		imageChanged = false;
+	}
+
+	/**
 	 * Effect: sets the sound URI to the specified URI.
 	 *
 	 * @param uri
 	 *            the uri
 	 */
 	public void setSound(URI uri) {
-		sound = uri;
+		if (sound != null || uri != null) {
+			sound = uri;
+			soundChanged = true;
+		}
 	}
 
 	/**
@@ -106,6 +139,21 @@ public class Scene {
 	 */
 	public URI sound() {
 		return sound;
+	}
+
+	/**
+	 * @return true if the sound has changed since the last call to
+	 *         {@link #clearSoundChanged()}.
+	 */
+	public boolean soundChanged() {
+		return soundChanged;
+	}
+
+	/**
+	 * Clears the sound changed status
+	 */
+	public void clearSoundChanged() {
+		soundChanged = false;
 	}
 
 	/**

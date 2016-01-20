@@ -1,7 +1,6 @@
 package gui;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -164,57 +163,6 @@ public class Grow extends Application {
 		}
 
 		g = new GrowGame(c.input(), c.output(), getRoot());
-		// Handle drag and drop images
-		image.setOnDragOver(event -> {
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles() || event.getDragboard().hasImage()) {
-				event.acceptTransferModes(TransferMode.COPY);
-			}
-			event.consume();
-		});
-		image.setOnDragEntered(event -> {
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles() || event.getDragboard().hasImage()) {
-				image.setEffect(new Glow());
-			}
-			event.consume();
-		});
-		image.setOnDragExited(event -> {
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles() || event.getDragboard().hasImage()) {
-				image.setEffect(null);
-			}
-			event.consume();
-		});
-		image.setOnDragDropped(event -> {
-			boolean success = false;
-			if (event.getGestureSource() != image && event.getDragboard().hasFiles() || event.getDragboard().hasImage()) {
-				Image i = null;
-				if (event.getDragboard().hasFiles()) {
-					List<File> files = event.getDragboard().getFiles();
-					if (files.size() == 1) {
-						try {
-							i = new Image(new FileInputStream(files.get(0)));
-						} catch (Exception e1) {
-							success = false;
-						}
-					}
-				} else if (event.getDragboard().hasImage()) {
-					i = event.getDragboard().getImage();
-				} else {
-					// This should never happen
-					throw new Error();
-				}
-
-				if (i == null) {
-					success = false;
-				} else {
-					success = g.saveImage(i);
-				}
-				if (success) {
-					setBackground(image, i);
-				}
-			}
-			event.setDropCompleted(success);
-			event.consume();
-		});
 
 		GameThread gameThread = new GameThread();
 		gameThread.start();
@@ -225,6 +173,48 @@ public class Grow extends Application {
 				new Alert(AlertType.ERROR, "You must finish editing before quitting.", ButtonType.OK).showAndWait();
 			}
 			e.consume();
+		});
+
+		// Handle drag and drop images
+		image.setOnDragOver(event -> {
+			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
+				event.acceptTransferModes(TransferMode.COPY);
+			}
+			event.consume();
+		});
+		image.setOnDragEntered(event -> {
+			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
+				image.setEffect(new Glow());
+			}
+			event.consume();
+		});
+		image.setOnDragExited(event -> {
+			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
+				image.setEffect(null);
+			}
+			event.consume();
+		});
+		image.setOnDragDropped(event -> {
+			boolean success = false;
+			if (event.getGestureSource() != image && event.getDragboard().hasFiles()) {
+				File newImage = null;
+				if (event.getDragboard().hasFiles()) {
+					List<File> files = event.getDragboard().getFiles();
+					if (files.size() == 1) {
+						try {
+							newImage = files.get(0);
+						} catch (Exception e1) {
+							success = false;
+						}
+					}
+				}
+
+				if (newImage != null && gameThread.inject(":import image\n" + newImage.toURI())) {
+					success = true;
+				}
+			}
+			event.setDropCompleted(success);
+			event.consume();
 		});
 
 		// Handle drag and drop adventures

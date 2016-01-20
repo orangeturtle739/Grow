@@ -76,7 +76,7 @@ Grow has several more editing commands which allow for editing the description o
 Run `ant`.
 
 # License
-This program is licensed under GPLv3.0. A copy of the license is in `license.txt`.
+This program is licensed under GPLv3.0. A copy of the license is in `LICENSE.txt`.
 
 ## Attribution
 1.  Font Awesome by Dave Gandy - [http://fontawesome.io](http://fontawesome.io).

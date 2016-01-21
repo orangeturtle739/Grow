@@ -241,7 +241,10 @@ public class GrowGame {
 			output.println("Something really bad happened.");
 			e.printStackTrace(output);
 			output.println("Please tell the developer.");
-			return true;
+			// Never return. Force a force quit.
+			while (true) {
+
+			}
 		}
 	}
 

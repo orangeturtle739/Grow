@@ -9,18 +9,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
+import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -172,7 +171,7 @@ public class SaveManager {
 			output.println("Would you like to remove them? (y/n)");
 			if (yesNo(input)) {
 				for (String str : badStateFiles) {
-					new File(stateDir, str).delete();
+					deleteFile(new File(stateDir, str));
 				}
 			}
 		}
@@ -182,7 +181,7 @@ public class SaveManager {
 			output.println("Would you like to remove them? (y/n)");
 			if (yesNo(input)) {
 				for (String str : badAdventureFiles) {
-					new File(adventureDir, str).delete();
+					deleteFile(new File(adventureDir, str));
 				}
 			}
 		}
@@ -192,10 +191,25 @@ public class SaveManager {
 			output.println("Would you like to remove them? (y/n)");
 			if (yesNo(input)) {
 				for (String str : adventureLessStates) {
-					new File(stateDir, str).delete();
+					deleteFile(new File(stateDir, str));
 				}
 			}
 		}
+	}
+
+	/**
+	 * Effect: recursively deletes a file and all of the files in it
+	 *
+	 * @param f
+	 *            the file
+	 */
+	private void deleteFile(File f) {
+		if (f.isDirectory()) {
+			for (File c : f.listFiles()) {
+				deleteFile(c);
+			}
+		}
+		f.delete();
 	}
 
 	/**
@@ -629,7 +643,7 @@ public class SaveManager {
 
 		if (i == null) {
 			try {
-				deleteSoundFile(s);
+				deleteSoundFile(g, s);
 				s.setSound(null);
 			} catch (IOException e) {
 				return false;
@@ -647,7 +661,7 @@ public class SaveManager {
 			return false;
 		}
 		try {
-			deleteSoundFile(s);
+			deleteSoundFile(g, s);
 			String newFileName = s.name() + "." + extension;
 			OutputStream out = writeImage(g.name(), newFileName);
 			Files.copy(Paths.get(i), out);
@@ -655,6 +669,7 @@ public class SaveManager {
 			URI newURI = readSoundFile(g.name(), newFileName);
 			s.setSound(newURI);
 		} catch (IOException e) {
+			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -662,18 +677,33 @@ public class SaveManager {
 
 	/**
 	 * Effect: deletes the sound file for the specified scene from the ZIP file
-	 * 
+	 *
+	 * @param g
+	 *            the game
+	 *
 	 * @param s
 	 *            the scene
 	 * @throws IOException
 	 *             if there is a problem
 	 */
-	private static void deleteSoundFile(Scene s) throws IOException {
+	private void deleteSoundFile(Game g, Scene s) throws IOException {
 		if (s.sound() != null) {
-			String[] array = s.sound().toString().split("!");
-			FileSystem fs = FileSystems.newFileSystem(URI.create(array[0]), new HashMap<>());
-			Files.delete(fs.getPath(array[1]));
-			fs.close();
+			ZipLocker zip = new ZipLocker(adventureFile(g.name()));
+			zip.delete(getLastBitFromUrl(s.sound().toString()));
+			zip.close();
+		}
+	}
+
+	/**
+	 * @param url
+	 *            the url
+	 * @return the name of the file at the end
+	 */
+	private static String getLastBitFromUrl(String url) {
+		try {
+			return URLDecoder.decode(url.replaceFirst(".*/([^/?]+).*", "$1"), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

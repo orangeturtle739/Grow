@@ -1,6 +1,8 @@
 package gui;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -140,7 +142,18 @@ public class SoundPlayer extends HBox {
 	 */
 	public void load(URI uri, boolean loop) {
 		clear();
-		player = new MediaPlayer(new Media(uri.toString()));
+		String decodedURIString;
+		// For some mysterious reason, it gets encoded twice, so we have to
+		// change it so it is only encoded once.
+		// This may be related to:
+		// http://stackoverflow.com/questions/9873845/java-7-zip-file-system-provider-doesnt-seem-to-accept-spaces-in-uri
+		decodedURIString = uri.toString().replaceAll("%(\\d\\d)(?!\\d)", "%25$1");
+		try {
+			decodedURIString = URLDecoder.decode(decodedURIString, "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+			throw new RuntimeException(e1);
+		}
+		player = new MediaPlayer(new Media(decodedURIString));
 		setLoop(loop);
 		player.currentTimeProperty().addListener((s, o, n) -> {
 			double p = n.toSeconds();

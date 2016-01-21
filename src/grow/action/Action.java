@@ -2,6 +2,7 @@ package grow.action;
 
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import grow.Game;
 import grow.Scene;
@@ -10,6 +11,12 @@ import grow.Scene;
  * Represents: an action that can be taken by a grow scene.
  */
 public abstract class Action {
+
+	/**
+	 * An injector that does nothing.
+	 */
+	public static final Consumer<String> EMPTY_INJECTOR = (s) -> {
+	};
 
 	/**
 	 * Effect: executes the specified action on the current scene, and appends
@@ -23,10 +30,18 @@ public abstract class Action {
 	 *            the input from the user
 	 * @param output
 	 *            the output from performing the action
+	 * @param injector
+	 *            a function which can inject a string into the input stream
+	 *            such that if the user were to hit enter,
+	 *            {@code input.nextLine()} would return the line passed to the
+	 *            {@code injector}. The string injected will not contain any new
+	 *            line characters. The injector should not be relied on for the
+	 *            game to work; it might do nothing. It should improve the user
+	 *            experience, however, if it does work.
 	 * @return the scene after the action. If the scene is null, the game is
 	 *         over.
 	 */
-	public abstract Scene act(Scene current, Game world, Scanner input, PrintStream output);
+	public abstract Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector);
 
 	/**
 	 * @return the prefix that identifies this command.

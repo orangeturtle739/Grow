@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import grow.Game;
 import grow.Rule;
@@ -19,10 +20,10 @@ import grow.Scene;
 public class Reorder extends Action {
 
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		return Util.handleCancel(current, output, () -> {
 			output.println("Enter the new rule order as a list of space-seperated integers.");
-			new View().act(current, world, input, output);
+			new View().act(current, world, input, output, injector);
 			List<Integer> order = Util.readInts(output, input, "Bad list!", 1, world.current().rules().size(), world.current().rules().size());
 			ArrayList<Rule> newRules = new ArrayList<>(world.current().rules().size());
 			for (Integer i : order) {
@@ -31,7 +32,7 @@ public class Reorder extends Action {
 			world.current().rules().clear();
 			world.current().rules().addAll(newRules);
 			output.println("Reorder complete.");
-			return new Go(current.name()).act(current, world, input, output);
+			return new Go(current.name()).act(current, world, input, output, injector);
 		});
 	}
 

@@ -205,6 +205,8 @@ public class Console extends SplitPane {
 				String text = inputArea.getText();
 				// Get rid of the new line at the end
 				text = text.trim();
+				// Get rid of all new lines in the text
+				text = text.replaceAll("\\R", "");
 				// We must print the text before forwarding it to ensure that
 				// the text appears before any response.
 				echoPrint.println(text);
@@ -254,6 +256,24 @@ public class Console extends SplitPane {
 			for (String line : split) {
 				inputArea.setText(line);
 				inputArea.getOnKeyReleased().handle(new KeyEvent(null, null, null, null, null, KeyCode.ENTER, false, false, false, false));
+			}
+		});
+	}
+
+	/**
+	 * Effect: clears the text entry field, and writes the specified string as
+	 * if the user entered it. Does not add a new line (like
+	 * {@link #simulateInput(String)}).
+	 *
+	 * @param str
+	 *            the string to write
+	 */
+	public void promptInput(String str) {
+		Platform.runLater(() -> {
+			// Handle multi-line input properly
+			String[] split = str.split("\\R");
+			for (String line : split) {
+				inputArea.setText(line);
 			}
 		});
 	}

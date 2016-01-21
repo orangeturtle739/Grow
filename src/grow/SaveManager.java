@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -107,13 +108,15 @@ public class SaveManager {
 	 *            the input
 	 * @param output
 	 *            the output
+	 * @param injector
+	 *            the injector to use to prompt the user
 	 * @return the initial game
 	 */
-	public Game init(Scanner input, PrintStream output) {
+	public Game init(Scanner input, PrintStream output, Consumer<String> injector) {
 		clean(input, output);
 		Game result = initGame(input, output);
 		linkMedia(result);
-		new Go(result.current().name()).act(result.current(), result, input, output);
+		new Go(result.current().name()).act(result.current(), result, input, output, injector);
 		return result;
 	}
 
@@ -473,9 +476,9 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				try {
-					return new Save(writeAdventureState(world.name()), writeAdventure(world.name())).act(current, world, input, output);
+					return new Save(writeAdventureState(world.name()), writeAdventure(world.name())).act(current, world, input, output, injector);
 				} catch (IOException e) {
 					output.println("Error saving: " + e.getMessage());
 					return current;
@@ -497,11 +500,11 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				return Util.handleCancel(current, output, () -> {
 					Scene modCurrent = current;
 					// Save the current game fist
-					modCurrent = saveAction().act(modCurrent, world, input, output);
+					modCurrent = saveAction().act(modCurrent, world, input, output, injector);
 
 					List<File> files = new ArrayList<>();
 					int count = 1;
@@ -515,7 +518,7 @@ public class SaveManager {
 					String adventureName = files.get(num).getName();
 					adventureName = adventureName.substring(0, adventureName.lastIndexOf('.'));
 					try {
-						modCurrent = new Read(readAdventureState(adventureName), readAdventure(adventureName)).act(modCurrent, world, input, output);
+						modCurrent = new Read(readAdventureState(adventureName), readAdventure(adventureName)).act(modCurrent, world, input, output, injector);
 					} catch (IOException e) {
 						output.println("Error read adventure: " + e.getMessage());
 						return modCurrent;
@@ -524,7 +527,7 @@ public class SaveManager {
 					// Look for any associated images
 					// world.
 					linkMedia(world);
-					return new Go(modCurrent.name()).act(modCurrent, world, input, output);
+					return new Go(modCurrent.name()).act(modCurrent, world, input, output, injector);
 				});
 			}
 		};
@@ -723,13 +726,13 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				// Save the current game fist
-				current = saveAction().act(current, world, input, output);
+				current = saveAction().act(current, world, input, output, injector);
 
 				world.loadGame(newGame(input, output));
-				current = saveAction().act(current, world, input, output);
-				return new Go(world.start().name()).act(current, world, input, output);
+				current = saveAction().act(current, world, input, output, injector);
+				return new Go(world.start().name()).act(current, world, input, output, injector);
 			}
 		};
 	}
@@ -748,7 +751,7 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				File adventureZip;
 				try {
 					adventureZip = new File(new URI(input.nextLine()));
@@ -834,13 +837,13 @@ public class SaveManager {
 					}
 				}
 				try {
-					current = new Read(readAdventureState(newAdventureName), readAdventure(newAdventureName)).act(current, world, input, output);
+					current = new Read(readAdventureState(newAdventureName), readAdventure(newAdventureName)).act(current, world, input, output, injector);
 					output.println("Imported adventure!");
 					// Link the images
 					linkMedia(world);
 					// Change the name
 					world.setName(newAdventureName);
-					return new Go(current.name()).act(current, world, input, output);
+					return new Go(current.name()).act(current, world, input, output, injector);
 				} catch (IOException e) {
 					output.println("Problem reading the new adventure: " + e.getMessage());
 					return current;
@@ -861,7 +864,7 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				try {
 					if (!saveSound(current, world, new URI(input.nextLine()))) {
 						output.println("Failed to import music.");
@@ -886,7 +889,7 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				try {
 					Image i = new Image(new URI(input.nextLine()).toURL().toString());
 					if (!saveImage(current, world, i)) {
@@ -912,7 +915,7 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				saveSound(current, world, null);
 				return current;
 			}
@@ -931,7 +934,7 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				saveImage(current, world, null);
 				return current;
 			}
@@ -1016,9 +1019,9 @@ public class SaveManager {
 			}
 
 			@Override
-			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				// Save the current game fist
-				current = saveAction().act(current, world, input, output);
+				current = saveAction().act(current, world, input, output, injector);
 				try {
 					PrintStream currentFile = new PrintStream(currentFile());
 					currentFile.println(world.name());
@@ -1028,7 +1031,7 @@ public class SaveManager {
 					e.printStackTrace(output);
 					output.println("When you start up the program next time, it may not remember where you left off. Please send the above information to the developer.");
 				}
-				return new Quit().act(current, world, input, output);
+				return new Quit().act(current, world, input, output, injector);
 			}
 		};
 	}

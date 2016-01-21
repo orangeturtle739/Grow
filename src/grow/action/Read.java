@@ -3,6 +3,7 @@ package grow.action;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import exceptions.GrowException;
 import grow.Game;
@@ -48,7 +49,7 @@ public class Read extends Action {
 	}
 
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		try {
 			Scanner adventure = new Scanner(adventureFile);
 			if (stateFile != null) {

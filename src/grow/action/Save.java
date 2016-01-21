@@ -3,6 +3,7 @@ package grow.action;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import grow.Game;
 import grow.Scene;
@@ -46,7 +47,7 @@ public class Save extends Action {
 	}
 
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		PrintStream adventureOut = new PrintStream(adventureFile);
 		world.saveWorld(adventureOut);
 		adventureOut.close();

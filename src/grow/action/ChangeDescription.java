@@ -2,6 +2,7 @@ package grow.action;
 
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import grow.Game;
 import grow.Scene;
@@ -15,15 +16,14 @@ import grow.Scene;
 public class ChangeDescription extends Action {
 
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		return Util.handleCancel(current, output, () -> {
-			output.printf("The current description for the scene \"%s\" is: %s", current.name(), current.description());
-			output.println();
-			String description = Util.read(output, input, "What would you like the new description to be?", "Bad description", (s) -> s);
+			injector.accept(current.description());
+			String description = Util.read(output, input, "What would you like the new description for scene \"" + current.name() + "\" to be?", "Bad description", (s) -> s);
 			current.setDescription(description);
 			output.println("Description set.");
 			// Re-enter the room with the new description
-			return new Go(current.name()).act(current, world, input, output);
+			return new Go(current.name()).act(current, world, input, output, injector);
 		});
 	}
 

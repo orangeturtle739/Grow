@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import exceptions.NoSuchScene;
 import grow.action.Action;
@@ -153,16 +154,19 @@ public class GrowGame {
 	 * Initializes the game. Throws an {@link IllegalStateException} if the game
 	 * has already been initialized.
 	 *
+	 * @param injector
+	 *            the injector used for prompting the user
+	 *
 	 * @param processor
 	 *            the processor used to display the initial image, and the sound
 	 * @param u
 	 *            the status updater, used to signal scene or adventure changes
 	 */
-	public void init(MediaProcessor processor, StatusUpdater u) {
+	public void init(Consumer<String> injector, MediaProcessor processor, StatusUpdater u) {
 		if (world != null) {
 			throw new IllegalStateException();
 		}
-		world = saveManager.init(input, output);
+		world = saveManager.init(input, output, injector);
 		processor.process(world.current().image());
 		processor.process(world.current().sound());
 
@@ -175,10 +179,13 @@ public class GrowGame {
 	/**
 	 * Does not display images.
 	 *
-	 * @see GrowGame#init(MediaProcessor, StatusUpdater)
+	 * @param injector
+	 *            the injector to use to prompt the user
+	 *
+	 * @see GrowGame#init(Consumer, MediaProcessor, StatusUpdater)
 	 */
-	public void init() {
-		init(MediaProcessor.EMPTY, (a, s) -> {
+	public void init(Consumer<String> injector) {
+		init(injector, MediaProcessor.EMPTY, (a, s) -> {
 		});
 	}
 
@@ -191,13 +198,15 @@ public class GrowGame {
 	 *
 	 * @param line
 	 *            the line to use as the initial input
+	 * @param injector
+	 *            the injector to use to prompt the user
 	 * @param p
 	 *            the processor which displays images and plays sound
 	 * @param u
 	 *            the status updater, used to signal scene or adventure changes
 	 * @return true if the game is still going, false if the game is over
 	 */
-	public boolean doTurn(String line, MediaProcessor p, StatusUpdater u) {
+	public boolean doTurn(String line, Consumer<String> injector, MediaProcessor p, StatusUpdater u) {
 		try {
 			List<Action> actions = null;
 			// Check to see if it is a command
@@ -210,7 +219,7 @@ public class GrowGame {
 			} else {
 				for (Action a : actions) {
 					Scene prev = world.current();
-					Scene next = a.act(world.current(), world, input, output);
+					Scene next = a.act(world.current(), world, input, output, injector);
 					try {
 						world.move(next);
 					} catch (NoSuchScene e) {
@@ -253,35 +262,43 @@ public class GrowGame {
 	 *
 	 * @param line
 	 *            the initial input
+	 * @param injector
+	 *            the injector to use to prompt the user
 	 * @return true if the game is still running
-	 * @see GrowGame#doTurn(String, MediaProcessor, StatusUpdater)
+	 * @see GrowGame#doTurn(String, Consumer, MediaProcessor, StatusUpdater)
 	 */
-	public boolean doTurn(String line) {
-		return doTurn(line, MediaProcessor.EMPTY, (a, s) -> {
+	public boolean doTurn(String line, Consumer<String> injector) {
+		return doTurn(line, injector, MediaProcessor.EMPTY, (a, s) -> {
 		});
 	}
 
 	/**
 	 * Starts a new game of grow that does not display images. Does not return
 	 * until complete.
+	 * 
+	 * @param injector
+	 *            the injector to use to prompt the user
 	 */
-	public void play() {
-		play(MediaProcessor.EMPTY, (a, s) -> {
+	public void play(Consumer<String> injector) {
+		play(injector, MediaProcessor.EMPTY, (a, s) -> {
 		});
 	}
 
 	/**
 	 * Starts a new game of grow that does display images using the specified
 	 * image consumer. Does not return until complete.
+	 * 
+	 * @param injector
+	 *            the injector to use to prompt the user
 	 *
 	 * @param p
 	 *            the processor which displays images and plays sound
 	 * @param u
 	 *            the status updater, used to signal scene or adventure changes
 	 */
-	public void play(MediaProcessor p, StatusUpdater u) {
+	public void play(Consumer<String> injector, MediaProcessor p, StatusUpdater u) {
 		// Keep doing turns until the game is over
-		while (doTurn(input.nextLine(), p, u)) {
+		while (doTurn(input.nextLine(), injector, p, u)) {
 			;
 		}
 	}

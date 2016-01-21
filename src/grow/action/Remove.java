@@ -2,6 +2,7 @@ package grow.action;
 
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import grow.Game;
 import grow.Scene;
@@ -16,11 +17,11 @@ import grow.Scene;
 public class Remove extends Action {
 
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		return Util.handleCancel(current, output, () -> {
 			current.rules().remove(Util.getRuleNumber("What rule would you like to remove?", output, input, world));
 			output.println("Done.");
-			return new Go(current.name()).act(current, world, input, output);
+			return new Go(current.name()).act(current, world, input, output, injector);
 		});
 	}
 

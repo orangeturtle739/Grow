@@ -21,12 +21,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import grow.GrowGame;
 import grow.MediaProcessor;
 import grow.StatusUpdater;
+import grow.action.Action;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -398,8 +400,8 @@ public class Grow extends Application {
 					System.out.println("Using " + growRoot + " to store grow files..");
 				}
 				GrowGame g = new GrowGame(new Scanner(System.in), new PrintStream(System.out), growRoot);
-				g.init();
-				g.play();
+				g.init(Action.EMPTY_INJECTOR);
+				g.play(Action.EMPTY_INJECTOR);
 			} else {
 				File oldRoot = getRoot();
 				if (growRoot != null) {
@@ -613,7 +615,10 @@ public class Grow extends Application {
 					dragAndDrop.setText(a + ".zip");
 				});
 			};
-			g.init(processor, u);
+			Consumer<String> prompter = (s) -> {
+				c.promptInput(s);
+			};
+			g.init(prompter, processor, u);
 			ExecutorService reader = Executors.newFixedThreadPool(1, r -> {
 				Thread t = new Thread(r);
 				t.setDaemon(true);
@@ -657,7 +662,7 @@ public class Grow extends Application {
 				synchronized (injection) {
 					line = injection.get() == null ? line : injection.get();
 				}
-			} while (g.doTurn(line, processor, u));
+			} while (g.doTurn(line, prompter, processor, u));
 			Platform.exit();
 		}
 

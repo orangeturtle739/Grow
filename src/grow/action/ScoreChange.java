@@ -2,6 +2,7 @@ package grow.action;
 
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import grow.Game;
 import grow.Scene;
@@ -31,7 +32,7 @@ public class ScoreChange extends Action {
 	/**
 	 * Creates: a new score change action which changes the score by the
 	 * specified amount
-	 * 
+	 *
 	 * @param change
 	 *            the amount to change the score by
 	 */
@@ -40,7 +41,7 @@ public class ScoreChange extends Action {
 	}
 
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		world.score().increment(change);
 		output.println((change >= 0 ? POSITIVE : NEGATIVE) + " " + Math.abs(change));
 		return current;

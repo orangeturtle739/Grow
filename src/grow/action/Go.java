@@ -2,6 +2,7 @@ package grow.action;
 
 import java.io.PrintStream;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import exceptions.SceneExists;
 import grow.Game;
@@ -26,8 +27,8 @@ public class Go extends Action {
 
 	/**
 	 * Creates: a new action that goes to the specified node. If the node is
-	 * empty, {@link #act(Scene, Game, Scanner, PrintStream)} will make an empty
-	 * node.
+	 * empty, {@link #act(Scene, Game, Scanner, PrintStream, Consumer)} will
+	 * make an empty node.
 	 *
 	 * @param next
 	 *            the next node.
@@ -37,7 +38,7 @@ public class Go extends Action {
 	}
 
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		if (world.getScene(next) == null) {
 			output.println("Creating new scene: " + next);
 			output.println("Description: ");

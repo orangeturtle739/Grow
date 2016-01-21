@@ -3,11 +3,10 @@ package grow.action;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import exceptions.CanceledException;
 import grow.Game;
@@ -20,8 +19,24 @@ import grow.Scene;
  */
 public class Edit extends Action {
 
+	/**
+	 * Used to indicate no action
+	 */
+	private static final Action noAction = new Action() {
+
+		@Override
+		public char commandPrefix() {
+			return 0;
+		}
+
+		@Override
+		public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
+			return null;
+		}
+	};
+
 	@Override
-	public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
+	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 		return Util.handleCancel(current, output, () -> {
 			int num = Util.getRuleNumber("What rule would you like to edit?", output, input, world);
 			output.println("What would you like to do?");
@@ -31,10 +46,10 @@ public class Edit extends Action {
 			int option = Util.readInt(output, input, "", "Not a valid choice", 0, choices.size()) - 1;
 			switch (option) {
 			case 0:
-				editPatterns(current, world, input, output, num);
+				editPatterns(current, world, input, output, injector, num);
 				break;
 			case 1:
-				editActions(current, world, input, output, num);
+				editActions(current, world, input, output, injector, num);
 				break;
 			case 2:
 				reorderActions(current, world, input, output, num);
@@ -56,25 +71,62 @@ public class Edit extends Action {
 	 *            the input
 	 * @param output
 	 *            the output
+	 * @param injector
+	 *            the injector used to prompt the user
 	 * @param index
 	 *            the index of the rule to edit
 	 * @throws CanceledException
 	 *             if the user cancels the edit
 	 */
-	private static void editPatterns(Scene current, Game world, Scanner input, PrintStream output, int index) throws CanceledException {
-		output.println("Which patterns would you like to remove? Enter a list of space-separated integers.");
-		Util.printNumberedList("", ".", 0, 5, output, world.current().rules().get(index).patterns());
-		Set<Integer> toRemove = new HashSet<>(Util.readInts(output, input, "Bad list!", 1, world.current().rules().get(index).patterns().size()));
-		int count = 1;
-		Iterator<String> patterns = world.current().rules().get(index).patterns().iterator();
-		while (patterns.hasNext()) {
-			patterns.next();
-			if (toRemove.contains(count)) {
-				patterns.remove();
+	private static void editPatterns(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector, int index) throws CanceledException {
+		// Make sure there are some patterns
+		while (world.current().rules().get(index).patterns().size() != 0) {
+			output.println("Which pattern would you like to edit? (Hit enter if you do not want to edit.)");
+			Util.printNumberedList("", ".", 0, 5, output, world.current().rules().get(index).patterns());
+			List<Integer> toEdit = Util.readInts(output, input, "Bad pattern number.", 1, world.current().rules().get(index).patterns().size(), 0, 1);
+			if (!toEdit.isEmpty()) {
+				// Subtract 1 because we have to edit
+				String pattern = getAtIndex(world.current().rules().get(index).patterns(), toEdit.get(0) - 1);
+				injector.accept(pattern);
+				String newPattern = Util.read(output, input, "Editing: " + pattern, "Bad pattern.", (s) -> s);
+				world.current().rules().get(index).patterns().remove(pattern);
+				if (newPattern.length() != 0) {
+					world.current().rules().get(index).patterns().add(newPattern);
+					output.println("Changed \"" + pattern + "\" to \"" + newPattern + "\".");
+				} else {
+					output.println("Removed: " + pattern);
+				}
+			} else {
+				break;
 			}
-			count++;
 		}
-		world.current().rules().get(index).patterns().addAll(Util.readList(output, input, "Patterns to add: ", "Bad pattern!", (s) -> s, "List error?", (l) -> true));
+		world.current().rules().get(index).patterns().addAll(Util.readList(output, input, "Enter patterns to add: ", "Bad pattern!", (s) -> s, "List error.", (l) -> true));
+	}
+
+	/**
+	 * Effect: gets the element at the specified index from the set. The set is
+	 * ordered based on its iterator.
+	 *
+	 * @param <T>
+	 *            the type of things in the set
+	 * @param things
+	 *            the things
+	 * @param index
+	 *            the index
+	 * @return the element
+	 * @throws IndexOutOfBoundsException
+	 *             if the index is out of bounds
+	 */
+	private static <T> T getAtIndex(Set<T> things, int index) {
+		int count = 0;
+		for (T thing : things) {
+			if (index == count) {
+				return thing;
+			} else {
+				count++;
+			}
+		}
+		throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + things.size());
 	}
 
 	/**
@@ -88,25 +140,43 @@ public class Edit extends Action {
 	 *            the input
 	 * @param output
 	 *            the output
+	 * @param injector
+	 *            the injector for prompting the user
 	 * @param index
 	 *            the index of the rule to edit
 	 * @throws CanceledException
 	 *             if the user cancels the edit
 	 */
-	private static void editActions(Scene current, Game world, Scanner input, PrintStream output, int index) throws CanceledException {
-		output.println("Which actions would you like to remove? Enter a list of space-separated integers.");
-		Util.printNumberedList("", ".", 0, 5, output, world.current().rules().get(index).actions());
-		Set<Integer> toRemove = new HashSet<>(Util.readInts(output, input, "Bad list!", 1, world.current().rules().get(index).actions().size()));
-		int count = 1;
-		Iterator<Action> patterns = world.current().rules().get(index).actions().iterator();
-		while (patterns.hasNext()) {
-			patterns.next();
-			if (toRemove.contains(count)) {
-				patterns.remove();
+	private static void editActions(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector, int index) throws CanceledException {
+		// Make sure there are some patterns
+		while (world.current().rules().get(index).actions().size() != 0) {
+			output.println("Which action would you like to edit? (Hit enter if you do not want to edit.)");
+			Util.printNumberedList("", ".", 0, 5, output, world.current().rules().get(index).actions());
+			List<Integer> toEdit = Util.readInts(output, input, "Bad action number.", 1, world.current().rules().get(index).actions().size(), 0, 1);
+			if (!toEdit.isEmpty()) {
+				// Subtract 1 because we have to edit
+				int actionIndex = toEdit.get(0) - 1;
+				Action action = world.current().rules().get(index).actions().get(actionIndex);
+				injector.accept(action.toString());
+				Action newAction = Util.read(output, input, "Editing: " + action, "Bad action.", (str) -> {
+					if (str.length() == 0) {
+						return noAction;
+					} else {
+						return Util.actionConverter.apply(str);
+					}
+				});
+				world.current().rules().get(index).actions().remove(actionIndex);
+				if (newAction != noAction) {
+					world.current().rules().get(index).actions().add(newAction);
+					output.println("Changed \"" + action + "\" to \"" + newAction + "\".");
+				} else {
+					output.println("Removed: " + action);
+				}
+			} else {
+				break;
 			}
-			count++;
 		}
-		world.current().rules().get(index).actions().addAll(Util.readList(output, input, "Actions to add: ", "Bad pattern!", Util.actionConverter, "List error?", (l) -> true));
+		world.current().rules().get(index).actions().addAll(Util.readList(output, input, "Actions to add: ", "Bad pattern!", Util.actionConverter, "List error.", (l) -> true));
 	}
 
 	/**

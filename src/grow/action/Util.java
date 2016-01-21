@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import exceptions.CanceledException;
 import grow.Game;
@@ -305,7 +306,7 @@ public class Util {
 	 */
 	public static int getRuleNumber(String prompt, PrintStream output, Scanner input, Game world) throws CanceledException {
 		output.println(prompt);
-		new View().act(world.current(), world, input, output);
+		Util.printNumberedList("", ".", 0, 5, output, world.current().rules().stream().map(r -> Util.prettyRule(r)).collect(Collectors.toList()));
 		int num = Util.readInt(output, input, "", "Not a valid rule number.", 1, world.current().rules().size());
 		return num - 1;
 	}
@@ -423,8 +424,35 @@ public class Util {
 	 *             if the user typed {@code :cancel}.
 	 */
 	public static List<Integer> readInts(PrintStream output, Scanner input, String onError, int min, int max, int count) throws CanceledException {
+		return readInts(output, input, onError, min, max, count, count);
+	}
+
+	/**
+	 * Effect: just like
+	 * {@link #readInts(PrintStream, Scanner, String, int, int)}, but also makes
+	 * sure the number of integers is in the range {@code [minCount, maxCount]}.
+	 *
+	 * @param output
+	 *            the output stream
+	 * @param input
+	 *            the input stream
+	 * @param onError
+	 *            the text to display if the list does not pass the checks.
+	 * @param min
+	 *            the minimum value
+	 * @param max
+	 *            the maximum value
+	 * @param minCount
+	 *            the minimum number of values permitted
+	 * @param maxCount
+	 *            the maximum number of values permitted
+	 * @return the list of integers
+	 * @throws CanceledException
+	 *             if the user typed {@code :cancel}.
+	 */
+	public static List<Integer> readInts(PrintStream output, Scanner input, String onError, int min, int max, int minCount, int maxCount) throws CanceledException {
 		return readInts(output, input, onError, (l) -> {
-			return intListMinMax(min, max).test(l) && l.size() == count;
+			return intListMinMax(min, max).test(l) && l.size() >= minCount && l.size() <= maxCount;
 		});
 	}
 

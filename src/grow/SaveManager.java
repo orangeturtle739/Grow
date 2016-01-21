@@ -498,42 +498,34 @@ public class SaveManager {
 
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output) {
-				// Save the current game fist
-				current = saveAction().act(current, world, input, output);
+				return Util.handleCancel(current, output, () -> {
+					Scene modCurrent = current;
+					// Save the current game fist
+					modCurrent = saveAction().act(modCurrent, world, input, output);
 
-				List<File> files = new ArrayList<>();
-				int count = 1;
-				for (File f : new File(growDir, ADVENTURES).listFiles((f) -> f.getName().endsWith(".zip"))) {
-					files.add(f);
-					output.printf("%-5s %s", Integer.toString(count++), f.getName().substring(0, f.getName().lastIndexOf('.')));
+					List<File> files = new ArrayList<>();
+					int count = 1;
+					for (File f : new File(growDir, ADVENTURES).listFiles((f) -> f.getName().endsWith(".zip"))) {
+						files.add(f);
+						output.printf("%-5s %s", Integer.toString(count++), f.getName().substring(0, f.getName().lastIndexOf('.')));
+						output.println();
+					}
 					output.println();
-				}
-				output.println();
-				int num = -1;
-				while (num <= 0) {
-					output.println("Adventure #:");
+					int num = Util.readInt(output, input, "Adventure #:", "Bad story number!", 1, files.size()) - 1;
+					String adventureName = files.get(num).getName();
+					adventureName = adventureName.substring(0, adventureName.lastIndexOf('.'));
 					try {
-						num = Integer.parseInt(input.nextLine());
-					} catch (NumberFormatException e) {
-						num = -1;
+						modCurrent = new Read(readAdventureState(adventureName), readAdventure(adventureName)).act(modCurrent, world, input, output);
+					} catch (IOException e) {
+						output.println("Error read adventure: " + e.getMessage());
+						return modCurrent;
 					}
-					if (num - 1 >= files.size()) {
-						num = -1;
-					}
-				}
-				String adventureName = files.get(num - 1).getName();
-				adventureName = adventureName.substring(0, adventureName.lastIndexOf('.'));
-				try {
-					current = new Read(readAdventureState(adventureName), readAdventure(adventureName)).act(current, world, input, output);
-				} catch (IOException e) {
-					output.println("Error read adventure: " + e.getMessage());
-					return current;
-				}
 
-				// Look for any associated images
-				// world.
-				linkMedia(world);
-				return new Go(current.name()).act(current, world, input, output);
+					// Look for any associated images
+					// world.
+					linkMedia(world);
+					return new Go(modCurrent.name()).act(modCurrent, world, input, output);
+				});
 			}
 		};
 	}

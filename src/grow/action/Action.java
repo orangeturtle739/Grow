@@ -44,9 +44,14 @@ public abstract class Action {
 	public abstract Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector);
 
 	/**
+	 * By default, returns {@code '-'}. You should override this for an action
+	 * that is parsable.
+	 *
 	 * @return the prefix that identifies this command.
 	 */
-	public abstract char commandPrefix();
+	public char commandPrefix() {
+		return 0;
+	}
 
 	/**
 	 * @return the body of this command. Returns an empty string by default.
@@ -83,6 +88,9 @@ public abstract class Action {
 			case Print.PREFIX:
 				return new Print(action.substring(1));
 			case Extend.PREFIX:
+				if (action.length() != 1) {
+					break;
+				}
 				return new Extend();
 			case ScoreChange.POSITIVE:
 				int up = tryParse(action.substring(1));
@@ -99,16 +107,32 @@ public abstract class Action {
 					break;
 				}
 			case Go.PREFIX:
+				// You must have at least the g and at least one other character
+				// to name the scene
+				if (action.length() < 2) {
+					break;
+				}
 				return new Go(action.substring(1));
 			case Quit.PREFIX:
+				if (action.length() != 1) {
+					break;
+				}
 				return new Quit();
 			case Restart.PREFIX:
+				if (action.length() != 1) {
+					break;
+				}
 				return new Restart();
 			case View.PREFIX:
+				if (action.length() != 1) {
+					break;
+				}
 				return new View();
-			default:
-				// If no prefix, assume print
-				return new Print(action);
+			case ScoreDisplay.PREFIX:
+				if (action.length() != 1) {
+					break;
+				}
+				return new ScoreDisplay();
 			}
 		}
 		return null;

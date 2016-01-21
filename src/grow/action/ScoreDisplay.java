@@ -8,28 +8,26 @@ import grow.Game;
 import grow.Scene;
 
 /**
- * Represents: a quit action
- *
+ * Represents: an action which prints out the score of the current user
+ * 
  * @author Jacob Glueck
  */
-public class Quit extends Action {
+public class ScoreDisplay extends Action {
 
 	/**
-	 * The prefix
+	 * The prefix for a score action
 	 */
-	public static final char PREFIX = 'q';
+	public static final char PREFIX = 's';
 
 	@Override
 	public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
-		// Display the score
-		new ScoreDisplay().act(current, world, input, output, injector);
-		// Null means that the game is over!
-		return null;
+		output.println("Your score is: " + world.score().score());
+		return current;
 	}
 
 	@Override
 	public char commandPrefix() {
-		return PREFIX;
+		return 's';
 	}
 
 }

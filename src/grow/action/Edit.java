@@ -23,12 +23,6 @@ public class Edit extends Action {
 	 * Used to indicate no action
 	 */
 	private static final Action noAction = new Action() {
-
-		@Override
-		public char commandPrefix() {
-			return 0;
-		}
-
 		@Override
 		public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 			return null;
@@ -206,10 +200,4 @@ public class Edit extends Action {
 		world.current().rules().get(index).actions().clear();
 		world.current().rules().get(index).actions().addAll(newActions);
 	}
-
-	@Override
-	public char commandPrefix() {
-		return 'e';
-	}
-
 }

@@ -35,10 +35,4 @@ public class Reorder extends Action {
 			return new Go(current.name()).act(current, world, input, output, injector);
 		});
 	}
-
-	@Override
-	public char commandPrefix() {
-		return 'o';
-	}
-
 }

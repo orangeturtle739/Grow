@@ -34,5 +34,4 @@ public class View extends Action {
 	public char commandPrefix() {
 		return PREFIX;
 	}
-
 }

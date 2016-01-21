@@ -15,12 +15,6 @@ import grow.Scene;
  *
  */
 public class Save extends Action {
-
-	/**
-	 * The prefix
-	 */
-	public static final char PREFIX = 's';
-
 	/**
 	 * The save file for the adventure
 	 */
@@ -56,10 +50,4 @@ public class Save extends Action {
 		stateOut.close();
 		return current;
 	}
-
-	@Override
-	public char commandPrefix() {
-		return PREFIX;
-	}
-
 }

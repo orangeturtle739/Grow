@@ -19,11 +19,6 @@ import grow.Scene;
 public class Read extends Action {
 
 	/**
-	 * The prefix
-	 */
-	public static final char PREFIX = 'R';
-
-	/**
 	 * The file in which the state is saved
 	 */
 	private final InputStream stateFile;
@@ -67,10 +62,5 @@ public class Read extends Action {
 			output.println();
 		}
 		return world.current();
-	}
-
-	@Override
-	public char commandPrefix() {
-		return PREFIX;
 	}
 }

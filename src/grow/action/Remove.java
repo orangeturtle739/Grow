@@ -25,9 +25,4 @@ public class Remove extends Action {
 		});
 	}
 
-	@Override
-	public char commandPrefix() {
-		return 'r';
-	}
-
 }

@@ -471,11 +471,6 @@ public class SaveManager {
 		return new Action() {
 
 			@Override
-			public char commandPrefix() {
-				return 0;
-			}
-
-			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				try {
 					return new Save(writeAdventureState(world.name()), writeAdventure(world.name())).act(current, world, input, output, injector);
@@ -493,12 +488,6 @@ public class SaveManager {
 	 */
 	public Action readAction() {
 		return new Action() {
-
-			@Override
-			public char commandPrefix() {
-				return 0;
-			}
-
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				return Util.handleCancel(current, output, () -> {
@@ -719,12 +708,6 @@ public class SaveManager {
 	 */
 	public Action newAction() {
 		return new Action() {
-
-			@Override
-			public char commandPrefix() {
-				return 0;
-			}
-
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				// Save the current game fist
@@ -745,11 +728,6 @@ public class SaveManager {
 	 */
 	public Action importAction() {
 		return new Action() {
-			@Override
-			public char commandPrefix() {
-				return 0;
-			}
-
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				File adventureZip;
@@ -857,12 +835,6 @@ public class SaveManager {
 	 */
 	public Action importMusic() {
 		return new Action() {
-
-			@Override
-			public char commandPrefix() {
-				return 0;
-			}
-
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				try {
@@ -882,11 +854,6 @@ public class SaveManager {
 	 */
 	public Action importPicture() {
 		return new Action() {
-
-			@Override
-			public char commandPrefix() {
-				return 0;
-			}
 
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
@@ -910,11 +877,6 @@ public class SaveManager {
 		return new Action() {
 
 			@Override
-			public char commandPrefix() {
-				return 0;
-			}
-
-			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				saveSound(current, world, null);
 				return current;
@@ -927,11 +889,6 @@ public class SaveManager {
 	 */
 	public Action clearImage() {
 		return new Action() {
-
-			@Override
-			public char commandPrefix() {
-				return 0;
-			}
 
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
@@ -1012,12 +969,6 @@ public class SaveManager {
 	 */
 	public Action quitAction() {
 		return new Action() {
-
-			@Override
-			public char commandPrefix() {
-				return 0;
-			}
-
 			@Override
 			public Scene act(Scene current, Game world, Scanner input, PrintStream output, Consumer<String> injector) {
 				// Save the current game fist

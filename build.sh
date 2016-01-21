@@ -2,6 +2,7 @@
 cd "$(dirname "$0")"
 ant clean
 ant
-./bundle.sh
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_66.jdk/Contents/Home
+ant bundle
 ant zipapp
 ant package-docs

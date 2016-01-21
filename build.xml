@@ -57,7 +57,7 @@
 		<jar destfile="build/Grow.jar" basedir="bin">
 			<manifest>
 				<attribute name="Main-Class" value="gui.Grow" />
-				<attribute name="Specification-Version" value="1.3.0" />
+				<attribute name="Specification-Version" value="1.3.1" />
 			</manifest>
 		</jar>
 	</target>
